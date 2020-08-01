@@ -21,3 +21,4 @@ RUN wget -q https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_
     ln -sf /opt/signal-cli-${SIGNAL_CLI_VERSION}/bin/signal-cli /usr/local/bin/
 
 WORKDIR /app
+COPY scripts/register-number.sh /app
