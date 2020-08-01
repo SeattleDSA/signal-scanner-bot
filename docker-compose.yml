@@ -1,0 +1,10 @@
+version: '3'
+services:
+  cli:
+    build: .
+    environment:
+      - XDG_DATA_HOME=/app/data
+    volumes:
+      - signal-cli:/app/data/signal-cli
+volumes:
+  signal-cli:
