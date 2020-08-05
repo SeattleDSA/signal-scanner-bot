@@ -1,4 +1,5 @@
 """Main module."""
+import logging
 import subprocess
 from datetime import datetime
 from typing import Dict
@@ -8,11 +9,14 @@ import ujson
 from . import env
 
 
+log = logging.getLogger(__name__)
+
+
 def process_message(blob: Dict) -> None:
-    print(f"Got message: {blob}")
+    log.debug(f"Got message: {blob}")
     envelope = blob.get("envelope", {})
     if not envelope or "dataMessage" not in envelope:
-        print(f"Malformed message: {blob}")
+        log.error(f"Malformed message: {blob}")
 
     data = envelope["dataMessage"]
     if data is None or not data.get("message"):
@@ -21,7 +25,7 @@ def process_message(blob: Dict) -> None:
 
     message = data["message"]
     timestamp = datetime.fromtimestamp(data["timestamp"] / 1000.0)
-    print(f"{timestamp.isoformat()}: '{message}'")
+    log.info(f"{timestamp.isoformat()}: '{message}'")
 
 
 def listen_and_print():
@@ -39,8 +43,7 @@ def listen_and_print():
         if proc.stderr.peek(10):
             for line in iter(proc.stderr.readline, b""):
                 line = line.decode("utf-8").rstrip()
-                print(f"STDERR: {line}")
-    except Exception:
-        print("Killing signal-cli")
+                log.warning(f"STDERR: {line}")
+    finally:
+        log.info("Killing signal-cli")
         proc.kill()
-        raise
