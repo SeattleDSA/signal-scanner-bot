@@ -13,6 +13,7 @@ with open("HISTORY.rst") as history_file:
 requirements = [
     "Click>=7.0",
     "tweepy>=3.9",
+    "ujson>=3.1",
 ]
 
 setup_requirements = [
