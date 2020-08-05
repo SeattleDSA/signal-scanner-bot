@@ -9,5 +9,5 @@ def _env(key: str, fail: bool = True) -> Optional[str]:
     return value
 
 
-BOT_PHONE_NUMBER = _env("BOT_PHONE_NUMBER")
-ADMIN_PHONE_NUMBER = _env("ADMIN_PHONE_NUMBER")
+BOT_NUMBER = _env("BOT_NUMBER")
+ADMIN_NUMBER = _env("ADMIN_NUMBER")

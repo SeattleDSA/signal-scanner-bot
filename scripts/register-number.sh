@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 signal-cli -u $BOT_NUMBER register
 echo "Enter the verification value sent to the primary phone"
 read verification
