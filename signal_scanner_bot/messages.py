@@ -13,16 +13,17 @@ def process_message(blob: Dict) -> None:
     if not envelope or "dataMessage" not in envelope:
         log.error(f"Malformed message: {blob}")
 
-    data = envelope["dataMessage"]
+    data = envelope.get("dataMessage") or {}
     if any(
         [
             # No actual message contents
-            (data is None or not data.get("message")),
+            not data.get("message"),
             # If listen group is defined and there's not group info
             (env.LISTEN_GROUP and "groupInfo" not in data),
             # Listen group is defined but ID doesn't match
             (
                 "groupInfo" in data
+                and data["groupInfo"]
                 and env.LISTEN_GROUP
                 and data["groupInfo"].get("groupId") != env.LISTEN_GROUP
             ),
