@@ -11,3 +11,4 @@ def _env(key: str, fail: bool = True) -> Optional[str]:
 
 BOT_NUMBER = _env("BOT_NUMBER")
 ADMIN_NUMBER = _env("ADMIN_NUMBER")
+LISTEN_GROUP = _env("LISTEN_GROUP", fail=False)
