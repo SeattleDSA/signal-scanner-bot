@@ -11,3 +11,7 @@ def get_api() -> tweepy.API:
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
     api.verify_credentials()
     return api
+
+
+def send_tweet(tweet: str, api: tweepy.API) -> None:
+    api.update_status(f"TESTING: {tweet}")

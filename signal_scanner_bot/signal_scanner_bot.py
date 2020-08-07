@@ -6,11 +6,13 @@ import ujson
 
 from . import env
 from . import messages
+from . import twitter
 
 log = logging.getLogger(__name__)
 
 
 def listen_and_print():
+    api = twitter.get_api()
     proc = subprocess.Popen(
         ["signal-cli", "-u", env.BOT_NUMBER, "receive", "--json", "-t", "-1"],
         stdout=subprocess.PIPE,
@@ -21,7 +23,9 @@ def listen_and_print():
             line = line.decode("utf-8").rstrip()
             blob = ujson.loads(line)
             try:
-                messages.process_message(blob)
+                message = messages.process_message(blob)
+                if message:
+                    twitter.send_tweet(message, api)
             except Exception:
                 log.error(f"Malformed message: {blob}")
                 raise
