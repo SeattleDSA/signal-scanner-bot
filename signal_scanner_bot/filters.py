@@ -41,4 +41,26 @@ def _f_not_recent(data: Dict) -> bool:
     return delta > timedelta(minutes=5)
 
 
-FILTERS = [_f_no_data, _f_no_group, _f_wrong_group, _f_not_recent]
+def _f_not_scanner_message(data: Dict) -> bool:
+    message: str = data["message"]
+    headers = {
+        "SCANNER",
+        "DISPATCH W",
+        "DISPATCH E",
+        "DISPATCH N",
+        "DISPATCH S",
+        "DISP W",
+        "DISP E",
+        "DISP N",
+        "DISP S",
+    }
+    return not any([message.upper().startswith(header) for header in headers])
+
+
+FILTERS = [
+    _f_no_data,
+    _f_no_group,
+    _f_wrong_group,
+    _f_not_recent,
+    _f_not_scanner_message,
+]
