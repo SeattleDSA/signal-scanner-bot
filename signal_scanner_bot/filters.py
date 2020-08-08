@@ -25,13 +25,13 @@ def _f_no_data(data: Dict) -> bool:
 
 def _f_no_group(data: Dict) -> bool:
     # If listen group is defined and there's not group info
-    return env.LISTEN_GROUP and not data.get("groupInfo")
+    return bool(env.LISTEN_GROUP and not data.get("groupInfo"))
 
 
 def _f_wrong_group(data: Dict) -> bool:
     # Listen group is defined but ID doesn't match
     group = data.get("groupInfo") or {}
-    return group and env.LISTEN_GROUP and group.get("groupId") != env.LISTEN_GROUP
+    return bool(group and env.LISTEN_GROUP and group.get("groupId") != env.LISTEN_GROUP)
 
 
 def _f_not_recent(data: Dict) -> bool:

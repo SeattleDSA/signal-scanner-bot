@@ -23,9 +23,10 @@ def listen_and_print():
             line = line.decode("utf-8").rstrip()
             blob = ujson.loads(line)
             try:
-                message = messages.process_message(blob)
-                if message:
-                    twitter.send_tweet(message, api)
+                response = messages.process_message(blob)
+                if response:
+                    message, timestamp = response
+                    twitter.send_tweet(message, timestamp, api)
             except Exception:
                 log.error(f"Malformed message: {blob}")
                 raise

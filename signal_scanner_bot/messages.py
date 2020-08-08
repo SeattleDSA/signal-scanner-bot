@@ -1,12 +1,13 @@
 import logging
-from typing import Dict, Optional
+from datetime import datetime
+from typing import Dict, Optional, Tuple
 
 from .filters import FILTERS, message_timestamp
 
 log = logging.getLogger(__name__)
 
 
-def process_message(blob: Dict) -> Optional[str]:
+def process_message(blob: Dict) -> Optional[Tuple[str, datetime]]:
     log.debug(f"Got message: {blob}")
     envelope = blob.get("envelope", {})
     if not envelope or "dataMessage" not in envelope:
@@ -15,9 +16,9 @@ def process_message(blob: Dict) -> Optional[str]:
     data = envelope.get("dataMessage") or {}
     for filter_ in FILTERS:
         if filter_(data):
-            return
+            return None
 
     message = data["message"]
     timestamp = message_timestamp(data)
     log.info(f"{timestamp.isoformat()}: '{message}'")
-    return f"{message} @ {timestamp.strftime('%l:%M:%S%p')}"
+    return message, timestamp

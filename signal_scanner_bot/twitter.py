@@ -1,6 +1,15 @@
+import logging
+from datetime import datetime
+from textwrap import dedent
+
 import tweepy
 
 from . import env
+
+log = logging.getLogger(__name__)
+
+HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
+TWEET_MAX_SIZE = 280
 
 
 def get_api() -> tweepy.API:
@@ -13,5 +22,17 @@ def get_api() -> tweepy.API:
     return api
 
 
-def send_tweet(tweet: str, api: tweepy.API) -> None:
-    api.update_status(f"TESTING: {tweet}")
+def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
+    hashtags = " ".join(HASHTAGS)
+    if len(tweet + hashtags) >= 260:
+        # TODO: better
+        log.warning(f"Cannot tweet message, exceeds length: {tweet}")
+
+    formatted = dedent(
+        f"""
+    {tweet} @ {timestamp.strftime('%l:%M:%S%p').strip()}
+
+    {hashtags}
+    """
+    )
+    api.update_status(formatted)
