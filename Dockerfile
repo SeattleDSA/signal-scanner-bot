@@ -22,3 +22,10 @@ RUN wget -q https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_
 
 WORKDIR /app
 COPY scripts/register-number.sh /app
+
+
+COPY . /app
+RUN pip install .
+
+CMD ["python", "signal_scanner_bot/bin/run.py"]
+
