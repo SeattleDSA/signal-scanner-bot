@@ -2,6 +2,8 @@ version: '3'
 services:
   cli:
     build: .
+    env_file:
+      - .env
     environment:
       - XDG_DATA_HOME=/app/data
     volumes:
