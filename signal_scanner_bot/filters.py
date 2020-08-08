@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Dict
 
-from signal_scanner_bot import env
+from . import env
 
 
 ################################################################################
@@ -12,7 +12,12 @@ def message_timestamp(data: Dict) -> datetime:
         timestamp_milliseconds = data["timestamp"]
     except KeyError as err:
         raise KeyError(f"Timestamp field is not present in data: {data}") from err
-    return datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
+    dt = datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
+    if env.TZ_UTC:
+        # TODO: Make this detect automatically
+        # Convert to PDT
+        dt -= timedelta(hours=7)
+    return dt
 
 
 ################################################################################
