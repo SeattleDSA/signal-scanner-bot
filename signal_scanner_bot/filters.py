@@ -4,16 +4,35 @@ from typing import Dict
 from . import env
 
 
+
+
+################################################################################
+# Constants
+################################################################################
+HEADERS = {
+    "SCANNER",
+    "DISPATCH W",
+    "DISPATCH E",
+    "DISPATCH N",
+    "DISPATCH S",
+    "DISP W",
+    "DISP E",
+    "DISP N",
+    "DISP S",
+    "GROUND",
+}
+
+
 ################################################################################
 # Utilities
 ################################################################################
-def message_timestamp(data: Dict) -> datetime:
+def message_timestamp(data: Dict, convert: bool = False) -> datetime:
     try:
         timestamp_milliseconds = data["timestamp"]
     except KeyError as err:
         raise KeyError(f"Timestamp field is not present in data: {data}") from err
     dt = datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
-    if env.TZ_UTC:
+    if env.TZ_UTC and convert:
         # TODO: Make this detect automatically
         # Convert to PDT
         dt -= timedelta(hours=7)
@@ -48,18 +67,7 @@ def _f_not_recent(data: Dict) -> bool:
 
 def _f_not_scanner_message(data: Dict) -> bool:
     message: str = data["message"]
-    headers = {
-        "SCANNER",
-        "DISPATCH W",
-        "DISPATCH E",
-        "DISPATCH N",
-        "DISPATCH S",
-        "DISP W",
-        "DISP E",
-        "DISP N",
-        "DISP S",
-    }
-    return not any([message.upper().startswith(header) for header in headers])
+    return not any([message.upper().startswith(header) for header in HEADERS])
 
 
 FILTERS = [
