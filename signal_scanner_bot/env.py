@@ -1,11 +1,16 @@
+import logging
 import os
 from typing import Optional
+
+
+log = logging.getLogger(__name__)
 
 
 def _env(key: str, fail: bool = True) -> Optional[str]:
     value = os.environ.get(key)
     if value is None and fail:
         raise KeyError(f"Key '{key}' is not present in environment!")
+    log.debug(f"{key}={value}")
     return value
 
 
