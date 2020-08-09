@@ -27,6 +27,7 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
     if len(tweet + hashtags) >= 260:
         # TODO: better
         log.warning(f"Cannot tweet message, exceeds length: {tweet}")
+        return
 
     formatted = dedent(
         f"""
