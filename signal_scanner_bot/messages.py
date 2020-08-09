@@ -15,10 +15,12 @@ def process_message(blob: Dict) -> Optional[Tuple[str, datetime]]:
 
     data = envelope.get("dataMessage") or {}
     for filter_ in FILTERS:
-        if filter_(data):
+        filt_value = filter_(data)
+        log.debug(f"{filter_}={filt_value}")
+        if filt_value:
             return None
 
     message = data["message"]
-    timestamp = message_timestamp(data)
+    timestamp = message_timestamp(data, convert=True)
     log.info(f"{timestamp.isoformat()}: '{message}'")
     return message, timestamp
