@@ -8,3 +8,16 @@ Configuration information is stored in `$XDG_DATA_HOME/signal-cli`, so `$XDG_DAT
 Twitter credentials and Signal config is defined via environment variables.
 To deploy, copy `.env.example` to `.env` and populate with the appropriate values.
 
+
+## Setup
+
+A phone must be registered prior to running the container.
+This can be done with the following command:
+```bash
+docker-compose run --rm cli ./register-number.sh
+```
+
+After following the registration prompts with your device, the container can be run with:
+```bash
+docker-compose up -d
+```
