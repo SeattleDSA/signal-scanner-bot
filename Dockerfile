@@ -2,6 +2,7 @@ FROM python:3.8-slim
 
 ENV PIP_NO_CACHE_DIR=1 \
     JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/ \
+    PYTHONPATH=/app \
     SIGNAL_CLI_VERSION=0.6.8
 
 # Install OpenJDK-8
