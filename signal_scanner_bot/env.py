@@ -1,19 +1,30 @@
 import logging
 import os
-from typing import Optional
+from typing import Optional, Any
 
 
 log = logging.getLogger(__name__)
 
 
-def _env(key: str, fail: bool = True) -> Optional[str]:
+_VARS = []
+
+
+def _env(key: str, fail: bool = True, default: Any = None) -> Optional[str]:
     value = os.environ.get(key)
-    if value is None and fail:
-        raise KeyError(f"Key '{key}' is not present in environment!")
-    log.debug(f"{key}={value}")
+    if value is None:
+        if fail:
+            raise KeyError(f"Key '{key}' is not present in environment!")
+        return default
+    _VARS.append((key, value))
     return value
 
 
+def log_vars() -> None:
+    for key, value in _VARS:
+        log.debug(f"{key}={value}")
+
+
+DEBUG = _env("DEBUG", fail=False, default=False)
 BOT_NUMBER = _env("BOT_NUMBER")
 ADMIN_NUMBER = _env("ADMIN_NUMBER")
 LISTEN_GROUP = _env("LISTEN_GROUP", fail=False)
