@@ -70,5 +70,7 @@ jobs:
           python-version: 3.8
       - name: Install Dependencies
         run: pip install docker-compose
+      - name: Make fake environment file
+        run: touch .env
       - name: Build Docker image
         run: docker-compose build
