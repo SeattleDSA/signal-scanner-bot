@@ -18,7 +18,15 @@ def panic(err: Exception) -> None:
     log.info(f"Panicing, attempting to call home at {env.ADMIN_NUMBER}")
     message = f"BOT FAILURE: {err}\n{traceback.format_exc(limit=4)}"
     proc = subprocess.run(
-        ["signal-cli", "-u", env.ADMIN_NUMBER, "send", "-m", message, env.ADMIN_NUMBER],
+        [
+            "signal-cli",
+            "-u",
+            str(env.BOT_NUMBER),
+            "send",
+            "-m",
+            message,
+            str(env.ADMIN_NUMBER),
+        ],
         capture_output=True,
     )
     if proc.stdout:
