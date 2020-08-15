@@ -2,6 +2,10 @@ import logging
 
 import click
 
+from signal_scanner_bot import env
+from signal_scanner_bot.signal_scanner_bot import listen_and_print
+
+
 log = logging.getLogger(__name__)
 
 logging.basicConfig(
@@ -13,12 +17,15 @@ logging.basicConfig(
 @click.command()
 @click.option("-d", "--debug", is_flag=True)
 def cli(debug: bool) -> None:
-    if debug:
+    if debug or env.DEBUG:
         logging.getLogger().setLevel(logging.DEBUG)
-    log.info("Listening...")
+        env.log_vars()
 
-    # Local import so env vars are logged at debug
-    from signal_scanner_bot.signal_scanner_bot import listen_and_print
+        # These are super noisy
+        for _log in ["requests", "oauthlib", "requests_oauthlib", "urllib3"]:
+            logging.getLogger(_log).setLevel(logging.INFO)
+
+    log.info("Listening...")
 
     listen_and_print()
 
