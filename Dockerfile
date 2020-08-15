@@ -2,6 +2,7 @@ FROM python:3.8-slim
 
 ENV PIP_NO_CACHE_DIR=1 \
     JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/ \
+    PYTHONPATH=/app \
     SIGNAL_CLI_VERSION=0.6.8
 
 # Install OpenJDK-8
@@ -22,10 +23,10 @@ RUN wget -q https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_
 
 WORKDIR /app
 COPY scripts/register-number.sh /app
-
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 COPY . /app
-RUN pip install .
 
 CMD ["python", "signal_scanner_bot/bin/run.py"]
 

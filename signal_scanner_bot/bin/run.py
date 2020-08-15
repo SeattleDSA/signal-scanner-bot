@@ -2,8 +2,6 @@ import logging
 
 import click
 
-from signal_scanner_bot.signal_scanner_bot import listen_and_print
-
 log = logging.getLogger(__name__)
 
 logging.basicConfig(
@@ -18,6 +16,10 @@ def cli(debug: bool) -> None:
     if debug:
         logging.getLogger().setLevel(logging.DEBUG)
     log.info("Listening...")
+
+    # Local import so env vars are logged at debug
+    from signal_scanner_bot.signal_scanner_bot import listen_and_print
+
     listen_and_print()
 
 
