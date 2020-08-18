@@ -3,7 +3,7 @@ import logging
 import click
 
 from signal_scanner_bot import env
-from signal_scanner_bot.signal_scanner_bot import listen_and_print
+from signal_scanner_bot.signal import listen_and_print
 
 
 log = logging.getLogger(__name__)

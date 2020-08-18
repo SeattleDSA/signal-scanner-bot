@@ -1,6 +1,7 @@
 """Main module."""
 import logging
 import subprocess
+import traceback
 
 import ujson
 
@@ -9,6 +10,29 @@ from . import messages
 from . import twitter
 
 log = logging.getLogger(__name__)
+
+
+def panic(err: Exception) -> None:
+    # We don't really care if this succeeds, particularly if there's an issue
+    # with the signal config
+    log.info(f"Panicing, attempting to call home at {env.ADMIN_NUMBER}")
+    message = f"BOT FAILURE: {err}\n{traceback.format_exc(limit=4)}"
+    proc = subprocess.run(
+        [
+            "signal-cli",
+            "-u",
+            str(env.BOT_NUMBER),
+            "send",
+            "-m",
+            message,
+            str(env.ADMIN_NUMBER),
+        ],
+        capture_output=True,
+    )
+    if proc.stdout:
+        log.info(f"STDOUT: {proc.stdout.decode('utf-8')}")
+    if proc.stderr:
+        log.warning(f"STDERR: {proc.stderr.decode('utf-8')}")
 
 
 def listen_and_print():
@@ -35,6 +59,11 @@ def listen_and_print():
             for line in iter(proc.stderr.readline, b""):
                 line = line.decode("utf-8").rstrip()
                 log.warning(f"STDERR: {line}")
+            proc.stderr.seek(0)
+            if proc.returncode != 0:
+                raise OSError(proc.stderr.read().decode("utf-8"))
+    except Exception as err:
+        panic(err)
     finally:
         log.info("Killing signal-cli")
         proc.kill()
