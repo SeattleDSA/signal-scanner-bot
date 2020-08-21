@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import click
@@ -27,7 +28,8 @@ def cli(debug: bool) -> None:
 
     log.info("Listening...")
 
-    listen_and_print()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(listen_and_print())
 
 
 if __name__ == "__main__":

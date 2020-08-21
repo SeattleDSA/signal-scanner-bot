@@ -1,4 +1,5 @@
 """Main module."""
+import asyncio
 import logging
 import subprocess
 import traceback
@@ -35,15 +36,18 @@ def panic(err: Exception) -> None:
         log.warning(f"STDERR: {proc.stderr.decode('utf-8')}")
 
 
-def listen_and_print():
+async def listen_and_print():
     api = twitter.get_api()
-    proc = subprocess.Popen(
-        ["signal-cli", "-u", env.BOT_NUMBER, "receive", "--json", "-t", "-1"],
+    proc = await asyncio.create_subprocess_shell(
+        f"signal-cli -u {env.BOT_NUMBER} receive --json -t -1",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
     try:
-        for line in iter(proc.stdout.readline, b""):
+        while True:
+            line = await proc.stdout.readline()
+            if not line:
+                break
             line = line.decode("utf-8").rstrip()
             blob = ujson.loads(line)
             try:
@@ -55,15 +59,16 @@ def listen_and_print():
                 log.error(f"Malformed message: {blob}")
                 raise
         # Check to see if there's any content in stderr
-        if proc.stderr.peek(10):
-            for line in iter(proc.stderr.readline, b""):
-                line = line.decode("utf-8").rstrip()
-                log.warning(f"STDERR: {line}")
-            proc.stderr.seek(0)
-            if proc.returncode != 0:
-                raise OSError(proc.stderr.read().decode("utf-8"))
+        error = (await proc.stderr.read()).decode()
+        for line in error.split("\n"):
+            log.warning(f"STDERR: {line}")
+        if proc.returncode != 0:
+            raise OSError(error)
     except Exception as err:
         panic(err)
     finally:
         log.info("Killing signal-cli")
-        proc.kill()
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
