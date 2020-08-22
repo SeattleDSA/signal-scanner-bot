@@ -4,7 +4,7 @@ import logging
 import click
 
 from signal_scanner_bot import env
-from signal_scanner_bot.signal import signal_to_twitter
+from signal_scanner_bot.transport import signal_to_twitter, twitter_to_signal
 
 
 log = logging.getLogger(__name__)
@@ -29,7 +29,9 @@ def cli(debug: bool) -> None:
     log.info("Listening...")
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(signal_to_twitter())
+    loop.create_task(signal_to_twitter())
+    loop.create_task(twitter_to_signal())
+    loop.run_forever()
 
 
 if __name__ == "__main__":

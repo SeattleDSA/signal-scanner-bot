@@ -5,6 +5,8 @@ from textwrap import dedent
 import tweepy
 
 from . import env
+from . import signal
+
 
 log = logging.getLogger(__name__)
 
@@ -49,3 +51,22 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
     """
     )
     api.update_status(formatted)
+
+
+################################################################################
+# Stream listener
+################################################################################
+class Listener(tweepy.StreamListener):
+
+    IS_LISTENING = True
+
+    def on_status(self, status: tweepy.Status):
+        # We don't are about retweets
+        if not status.is_quote_status and self.IS_LISTENING:
+            log.info(f"STATUS RECEIVED: {status.text}")
+            signal.send_message(status.text, env.LISTEN_GROUP, group=True)
+
+
+# Have to make this a global object so that we can modify
+# the listening attribute in another thread
+LISTENER = Listener()

@@ -1,44 +1,19 @@
-"""Main module."""
-import asyncio
 import logging
 import subprocess
 import traceback
+from typing import Optional
 
-import tweepy
-import ujson
+from signal_scanner_bot import env
 
-from . import env
-from . import messages
-from . import twitter
 
 log = logging.getLogger(__name__)
 
 
 ################################################################################
-# Stream listener
+# Send message
 ################################################################################
-class Listener(tweepy.StreamListener):
-
-    IS_LISTENING = False
-
-    def on_status(self, status: tweepy.Status):
-        # We don't are about retweets
-        if not status.is_quote_status and self.IS_LISTENING:
-            log.info(f"STATUS RECEIVED: {status.text}")
-
-
-# Have to make this a global object so that
-LISTENER = Listener()
-
-
-################################################################################
-# Panic
-################################################################################
-def panic(err: Exception) -> None:
-    # We don't really care if this succeeds, particularly if there's an issue
-    # with the signal config
-    log.info(f"Panicing, attempting to call home at {env.ADMIN_NUMBER}")
-    message = f"BOT FAILURE: {err}\n{traceback.format_exc(limit=4)}"
+def send_message(message: str, recipient: Optional[str], group: bool = False):
+    recipient_args = ["-g", str(recipient)] if group else [str(recipient)]
     proc = subprocess.run(
         [
             "signal-cli",
@@ -47,7 +22,7 @@ def panic(err: Exception) -> None:
             "send",
             "-m",
             message,
-            str(env.ADMIN_NUMBER),
+            *recipient_args,
         ],
         capture_output=True,
     )
@@ -58,50 +33,11 @@ def panic(err: Exception) -> None:
 
 
 ################################################################################
-# Signal-to-twitter
+# Panic
 ################################################################################
-async def signal_to_twitter():
-    api = twitter.get_api()
-    proc = await asyncio.create_subprocess_shell(
-        f"signal-cli -u {env.BOT_NUMBER} receive --json -t -1",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    try:
-        while True:
-            line = await proc.stdout.readline()
-            if not line:
-                break
-            line = line.decode("utf-8").rstrip()
-            blob = ujson.loads(line)
-            try:
-                response = messages.process_message(blob)
-                if response:
-                    message, timestamp = response
-                    twitter.send_tweet(message, timestamp, api)
-            except Exception:
-                log.error(f"Malformed message: {blob}")
-                raise
-        # Check to see if there's any content in stderr
-        error = (await proc.stderr.read()).decode()
-        for line in error.split("\n"):
-            log.warning(f"STDERR: {line}")
-        if proc.returncode != 0:
-            raise OSError(error)
-    except Exception as err:
-        panic(err)
-    finally:
-        log.info("Killing signal-cli")
-        try:
-            proc.kill()
-        except ProcessLookupError:
-            pass
-
-
-################################################################################
-# Twitter-to-signal
-################################################################################
-async def twitter_to_signal():
-    api = twitter.get_async_api()
-    stream = tweepy.Stream(auth=api.auth, listener=LISTENER)
-    stream.filter(track=twitter.RECEIVE_HASHTAGS, is_async=True)
+def panic(err: Exception) -> None:
+    # We don't really care if this succeeds, particularly if there's an issue
+    # with the signal config
+    log.info(f"Panicing, attempting to call home at {env.ADMIN_NUMBER}")
+    message = f"BOT FAILURE: {err}\n{traceback.format_exc(limit=4)}"
+    send_message(message, env.ADMIN_NUMBER)
