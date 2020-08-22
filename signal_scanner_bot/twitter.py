@@ -8,11 +8,20 @@ from . import env
 
 log = logging.getLogger(__name__)
 
-HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
+
+################################################################################
+# Constants
+################################################################################
+SEND_HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
+RECEIVE_HASHTAGS = ["#SeattleProtestComms"]
+TRUSTED_SCANNERS = {}
 TWEET_MAX_SIZE = 280
 
 
-def get_api() -> tweepy.API:
+################################################################################
+# Basic API
+################################################################################
+def get_api():
     # Authenticate to Twitter
     auth = tweepy.OAuthHandler(env.TWITTER_API_KEY, env.TWITTER_API_SECRET)
     auth.set_access_token(env.TWITTER_ACCESS_TOKEN, env.TWITTER_TOKEN_SECRET)
@@ -22,8 +31,11 @@ def get_api() -> tweepy.API:
     return api
 
 
+################################################################################
+# Sending data
+################################################################################
 def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
-    hashtags = " ".join(HASHTAGS)
+    hashtags = " ".join(SEND_HASHTAGS)
     if len(tweet + hashtags) >= 260:
         # TODO: better
         log.warning(f"Cannot tweet message, exceeds length: {tweet}")

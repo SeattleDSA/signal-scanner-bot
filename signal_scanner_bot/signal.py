@@ -4,6 +4,7 @@ import logging
 import subprocess
 import traceback
 
+import tweepy
 import ujson
 
 from . import env
@@ -13,6 +14,26 @@ from . import twitter
 log = logging.getLogger(__name__)
 
 
+################################################################################
+# Stream listener
+################################################################################
+class Listener(tweepy.StreamListener):
+
+    IS_LISTENING = False
+
+    def on_status(self, status: tweepy.Status):
+        # We don't are about retweets
+        if not status.is_quote_status and self.IS_LISTENING:
+            log.info(f"STATUS RECEIVED: {status.text}")
+
+
+# Have to make this a global object so that
+LISTENER = Listener()
+
+
+################################################################################
+# Panic
+################################################################################
 def panic(err: Exception) -> None:
     # We don't really care if this succeeds, particularly if there's an issue
     # with the signal config
@@ -36,7 +57,10 @@ def panic(err: Exception) -> None:
         log.warning(f"STDERR: {proc.stderr.decode('utf-8')}")
 
 
-async def listen_and_print():
+################################################################################
+# Signal-to-twitter
+################################################################################
+async def signal_to_twitter():
     api = twitter.get_api()
     proc = await asyncio.create_subprocess_shell(
         f"signal-cli -u {env.BOT_NUMBER} receive --json -t -1",
@@ -72,3 +96,12 @@ async def listen_and_print():
             proc.kill()
         except ProcessLookupError:
             pass
+
+
+################################################################################
+# Twitter-to-signal
+################################################################################
+async def twitter_to_signal():
+    api = twitter.get_async_api()
+    stream = tweepy.Stream(auth=api.auth, listener=LISTENER)
+    stream.filter(track=twitter.RECEIVE_HASHTAGS, is_async=True)
