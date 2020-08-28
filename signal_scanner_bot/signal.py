@@ -14,18 +14,21 @@ log = logging.getLogger(__name__)
 ################################################################################
 def send_message(message: str, recipient: Optional[str], group: bool = False):
     recipient_args = ["-g", str(recipient)] if group else [str(recipient)]
-    proc = subprocess.run(
-        [
-            "signal-cli",
-            "-u",
-            str(env.BOT_NUMBER),
-            "send",
-            "-m",
-            message,
-            *recipient_args,
-        ],
-        capture_output=True,
-    )
+    log.debug("Acquiring signal lock to send")
+    with env.SIGNAL_LOCK:
+        log.debug("Send lock acquired")
+        proc = subprocess.run(
+            [
+                "signal-cli",
+                "-u",
+                str(env.BOT_NUMBER),
+                "send",
+                "-m",
+                message,
+                *recipient_args,
+            ],
+            capture_output=True,
+        )
     if proc.stdout:
         log.info(f"STDOUT: {proc.stdout.decode('utf-8')}")
     if proc.stderr:

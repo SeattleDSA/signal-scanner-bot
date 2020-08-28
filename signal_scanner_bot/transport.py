@@ -37,34 +37,33 @@ async def twitter_to_signal():
 ################################################################################
 async def signal_to_twitter():
     api = twitter.get_api()
-    log.info("sleeping for 20 minutes")
-    await asyncio.sleep(1200)
-    proc = await asyncio.create_subprocess_shell(
-        f"signal-cli -u {env.BOT_NUMBER} receive --json -t -1",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
     try:
         while True:
-            line = await proc.stdout.readline()
-            if not line:
-                break
-            line = line.decode("utf-8").rstrip()
-            blob = ujson.loads(line)
-            try:
-                response = messages.process_message(blob)
-                if response:
-                    message, timestamp = response
-                    twitter.send_tweet(message, timestamp, api)
-            except Exception:
-                log.error(f"Malformed message: {blob}")
-                raise
-        # Check to see if there's any content in stderr
-        error = (await proc.stderr.read()).decode()
-        for line in error.split("\n"):
-            log.warning(f"STDERR: {line}")
-        if proc.returncode != 0:
-            raise OSError(error)
+            log.debug("Acquiring signal lock to listen")
+            with env.SIGNAL_LOCK:
+                log.debug("Listen lock acquired")
+                proc = await asyncio.create_subprocess_shell(
+                    f"signal-cli -u {env.BOT_NUMBER} receive --json -t {env.SIGNAL_TIMEOUT}",
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+            while line := await proc.stdout.readline():
+                line = line.decode("utf-8").rstrip()
+                blob = ujson.loads(line)
+                try:
+                    response = messages.process_message(blob)
+                    if response:
+                        message, timestamp = response
+                        twitter.send_tweet(message, timestamp, api)
+                except Exception:
+                    log.error(f"Malformed message: {blob}")
+                    raise
+            # Check to see if there's any content in stderr
+            error = (await proc.stderr.read()).decode()
+            for line in error.split("\n"):
+                log.warning(f"STDERR: {line}")
+            if proc.returncode != 0:
+                raise OSError(error)
     except Exception as err:
         panic(err)
     finally:
