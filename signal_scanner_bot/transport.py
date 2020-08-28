@@ -66,6 +66,7 @@ async def signal_to_twitter():
                 raise OSError(error)
     except Exception as err:
         panic(err)
+        raise
     finally:
         log.info("Killing signal-cli")
         try:
