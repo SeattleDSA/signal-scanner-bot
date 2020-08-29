@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Dict
 
+from tweepy import Status
+
 from . import env
 
 
@@ -38,7 +40,7 @@ def message_timestamp(data: Dict, convert: bool = False) -> datetime:
 
 
 ################################################################################
-# Filters
+# Signal Filters
 ################################################################################
 def _f_no_data(data: Dict) -> bool:
     # No actual message contents
@@ -68,10 +70,36 @@ def _f_not_scanner_message(data: Dict) -> bool:
     return not any([message.upper().startswith(header) for header in HEADERS])
 
 
-FILTERS = [
+SIGNAL_FILTERS = [
     _f_no_data,
     _f_no_group,
     _f_wrong_group,
     _f_not_recent,
     _f_not_scanner_message,
+]
+
+
+################################################################################
+# Twitter Filters
+################################################################################
+def _f_retweeted(status: Status) -> bool:
+    # Status is retweeted
+    return status.retweeted
+
+
+def _f_retweet_text(status: Status) -> bool:
+    # Status text starts with "RT @"
+    # Twitter uses that to identify a retweet
+    return status.text.startswith("RT @")
+
+
+def _f_not_trusted_tweeter(status: Status) -> bool:
+    # Status wasn't sent by a trusted tweeter
+    return status.author.screen_name not in env.TRUSTED_TWEETERS
+
+
+TWITTER_FILTERS = [
+    _f_retweeted,
+    _f_retweet_text,
+    _f_not_trusted_tweeter,
 ]

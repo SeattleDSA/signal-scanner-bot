@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import Dict, Optional, Tuple
 
-from .filters import FILTERS, message_timestamp
+from .filters import SIGNAL_FILTERS, message_timestamp
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def process_message(blob: Dict) -> Optional[Tuple[str, datetime]]:
         log.error(f"Malformed message: {blob}")
 
     data = envelope.get("dataMessage") or {}
-    for filter_ in FILTERS:
+    for filter_ in SIGNAL_FILTERS:
         filt_value = filter_(data)
         log.debug(f"{filter_}={filt_value}")
         if filt_value:
