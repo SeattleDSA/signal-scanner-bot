@@ -33,7 +33,7 @@ def _twitter_to_signal():
     api = twitter.get_api()
     stream = tweepy.Stream(auth=api.auth, listener=Listener())
     log.info("Stream initialized, starting to follow")
-    stream.filter(track=twitter.RECEIVE_HASHTAGS, is_async=True)
+    stream.filter(track=twitter.RECEIVE_HASHTAGS)
 
 
 async def twitter_to_signal():
