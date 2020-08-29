@@ -45,7 +45,7 @@ def _pass_filters(data: D, filters: List[Callable[[D], bool]]) -> bool:
 
 
 def _is_scanner_message(message: str) -> bool:
-    return not any([message.upper().startswith(header) for header in HEADERS])
+    return any([message.upper().startswith(header) for header in HEADERS])
 
 
 def _condense_command(message: str) -> str:
