@@ -68,7 +68,8 @@ async def signal_to_twitter():
             # Check to see if there's any content in stderr
             error = (await proc.stderr.read()).decode()
             for line in error.split("\n"):
-                log.warning(f"STDERR: {line}")
+                if line.strip():
+                    log.warning(f"STDERR: {line}")
             if proc.returncode != 0:
                 raise OSError(error)
     except Exception as err:
