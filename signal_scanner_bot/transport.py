@@ -51,7 +51,7 @@ async def signal_to_twitter():
                 line = line.decode("utf-8").rstrip()
                 blob = ujson.loads(line)
                 try:
-                    response = messages.process_message(blob)
+                    response = messages.process_signal_message(blob)
                     if response:
                         message, timestamp = response
                         twitter.send_tweet(message, timestamp, api)

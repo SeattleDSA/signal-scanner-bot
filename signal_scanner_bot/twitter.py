@@ -5,6 +5,7 @@ from textwrap import dedent
 import tweepy
 
 from . import env
+from . import messages
 from . import signal
 
 
@@ -61,10 +62,13 @@ class Listener(tweepy.StreamListener):
     IS_LISTENING = True
 
     def on_status(self, status: tweepy.Status):
-        # We don't are about retweets
-        if not status.is_quote_status and self.IS_LISTENING:
+        if not self.IS_LISTENING:
+            return
+
+        processed = messages.process_twitter_message(status)
+        if processed:
             log.info(f"STATUS RECEIVED: {status.text}")
-            signal.send_message(status.text, env.LISTEN_GROUP, group=True)
+            signal.send_message(processed, env.LISTEN_GROUP, group=True)
 
 
 # Have to make this a global object so that we can modify
