@@ -10,10 +10,20 @@ import ujson
 from . import env
 from . import messages
 from . import twitter
-from .signal import panic
-from .twitter import LISTENER
+from . import signal
 
 log = logging.getLogger(__name__)
+
+
+################################################################################
+# Stream listener
+################################################################################
+class Listener(tweepy.StreamListener):
+    def on_status(self, status: tweepy.Status):
+        if not env.STATE.LISTENING:
+            return
+
+        messages.process_twitter_message(status)
 
 
 ################################################################################
@@ -21,7 +31,7 @@ log = logging.getLogger(__name__)
 ################################################################################
 def _twitter_to_signal():
     api = twitter.get_api()
-    stream = tweepy.Stream(auth=api.auth, listener=LISTENER)
+    stream = tweepy.Stream(auth=api.auth, listener=Listener())
     log.info("Stream initialized, starting to follow")
     stream.filter(track=twitter.RECEIVE_HASHTAGS, is_async=True)
 
@@ -51,10 +61,7 @@ async def signal_to_twitter():
                 line = line.decode("utf-8").rstrip()
                 blob = ujson.loads(line)
                 try:
-                    response = messages.process_signal_message(blob)
-                    if response:
-                        message, timestamp = response
-                        twitter.send_tweet(message, timestamp, api)
+                    messages.process_signal_message(blob, api)
                 except Exception:
                     log.error(f"Malformed message: {blob}")
                     raise
@@ -65,7 +72,7 @@ async def signal_to_twitter():
             if proc.returncode != 0:
                 raise OSError(error)
     except Exception as err:
-        panic(err)
+        signal.panic(err)
         raise
     finally:
         log.info("Killing signal-cli")

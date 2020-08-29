@@ -10,6 +10,10 @@ log = logging.getLogger(__name__)
 _VARS = []
 
 
+class _State:
+    LISTENING = False
+
+
 def _env(key: str, fail: bool = True, default: Any = None) -> Optional[str]:
     value = os.environ.get(key)
     if value is None:
@@ -37,5 +41,6 @@ TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET")
 TRUSTED_TWEETERS = set(_env("TRUSTED_TWEETERS", default="").split(","))
 TZ_UTC = _env("TZ_UTC", fail=False)
 
-
 SIGNAL_LOCK = Lock()
+
+STATE = _State()
