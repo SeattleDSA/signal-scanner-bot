@@ -28,7 +28,10 @@ def cli(debug: bool) -> None:
 
     log.info("Listening...")
 
-    asyncio.gather(signal_to_twitter(), twitter_to_signal())
+    loop = asyncio.get_event_loop()
+    loop.create_task(signal_to_twitter())
+    loop.create_task(twitter_to_signal())
+    loop.run_forever()
 
 
 if __name__ == "__main__":
