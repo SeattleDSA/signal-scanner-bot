@@ -71,7 +71,7 @@ async def signal_to_twitter():
                 if line.strip():
                     log.warning(f"STDERR: {line}")
             if proc.returncode != 0:
-                raise OSError(error)
+                log.warning(f"Something went wrong (error code {proc.returncode})")
     except Exception as err:
         signal.panic(err)
         raise
