@@ -19,6 +19,10 @@ log = logging.getLogger(__name__)
 # Stream listener
 ################################################################################
 class Listener(tweepy.StreamListener):
+    """
+    Listener implementation for when a status matching the track is received.
+    """
+
     def on_status(self, status: tweepy.Status):
         if not env.STATE.LISTENING:
             return
@@ -30,6 +34,9 @@ class Listener(tweepy.StreamListener):
 # Twitter-to-signal
 ################################################################################
 def _twitter_to_signal():
+    """
+    Top level function for running the twitter-to-signal loop.
+    """
     api = twitter.get_api()
     stream = tweepy.Stream(auth=api.auth, listener=Listener())
     log.info("Stream initialized, starting to follow")
@@ -37,6 +44,9 @@ def _twitter_to_signal():
 
 
 async def twitter_to_signal():
+    """
+    Asynchronous interface for the twitter-to-signal loop.
+    """
     loop = asyncio.get_event_loop()
     with concurrent.futures.ThreadPoolExecutor() as pool:
         await loop.run_in_executor(pool, _twitter_to_signal)
@@ -46,6 +56,9 @@ async def twitter_to_signal():
 # Signal-to-twitter
 ################################################################################
 async def signal_to_twitter():
+    """
+    Top level function for running the signal-to-twitter loop.
+    """
     api = twitter.get_api()
     try:
         while True:

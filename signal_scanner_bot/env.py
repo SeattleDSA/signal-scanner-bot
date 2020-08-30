@@ -11,6 +11,8 @@ _VARS = []
 
 
 class _State:
+    """Class for holding global state across threads/tasks"""
+
     LISTENING = False
 
 

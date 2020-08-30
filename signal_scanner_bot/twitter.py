@@ -49,4 +49,3 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
     """
     )
     api.update_status(formatted)
-
