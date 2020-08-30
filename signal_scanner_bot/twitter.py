@@ -14,7 +14,6 @@ log = logging.getLogger(__name__)
 ################################################################################
 SEND_HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
 RECEIVE_HASHTAGS = ["#SeattleProtestComms"]
-TRUSTED_SCANNERS = {}
 TWEET_MAX_SIZE = 280
 
 

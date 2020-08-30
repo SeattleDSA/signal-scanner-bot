@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Dict
+from typing import Dict, List, Callable
 
 from tweepy import Status
 
@@ -48,7 +48,7 @@ def _f_not_recent(data: Dict) -> bool:
     return delta > timedelta(minutes=5)
 
 
-SIGNAL_FILTERS = [
+SIGNAL_FILTERS: List[Callable[[Dict], bool]] = [
     _f_no_data,
     _f_no_group,
     _f_wrong_group,
@@ -75,7 +75,7 @@ def _f_not_trusted_tweeter(status: Status) -> bool:
     return status.author.screen_name not in env.TRUSTED_TWEETERS
 
 
-TWITTER_FILTERS = [
+TWITTER_FILTERS: List[Callable[[Status], bool]] = [
     _f_retweeted,
     _f_retweet_text,
     _f_not_trusted_tweeter,
