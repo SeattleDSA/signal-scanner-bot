@@ -54,6 +54,7 @@ async def twitter_to_signal():
         except Exception as err:
             log.error("Exception occurred, halting process")
             log.exception(err)
+            signal.panic(err)
             env.STATE.STOP_REQUESTED = True
             raise
 
