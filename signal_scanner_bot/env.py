@@ -14,6 +14,7 @@ class _State:
     """Class for holding global state across threads/tasks"""
 
     LISTENING = False
+    STOP_REQUESTED = False
 
 
 def _env(key: str, fail: bool = True, default: Any = None) -> Optional[str]:

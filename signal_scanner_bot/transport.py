@@ -49,7 +49,13 @@ async def twitter_to_signal():
     """
     loop = asyncio.get_event_loop()
     with concurrent.futures.ThreadPoolExecutor() as pool:
-        await loop.run_in_executor(pool, _twitter_to_signal)
+        try:
+            await loop.run_in_executor(pool, _twitter_to_signal)
+        except Exception as err:
+            log.error("Exception occurred, halting process")
+            log.exception(err)
+            env.STATE.STOP_REQUESTED = True
+            raise
 
 
 ################################################################################
@@ -61,7 +67,7 @@ async def signal_to_twitter():
     """
     api = twitter.get_api()
     try:
-        while True:
+        while not env.STATE.STOP_REQUESTED:
             log.debug("Acquiring signal lock to listen")
             with env.SIGNAL_LOCK:
                 log.debug("Listen lock acquired")
