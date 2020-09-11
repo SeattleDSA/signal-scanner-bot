@@ -1,24 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Dict
+from typing import Dict, List, Callable
+
+from tweepy import Status
 
 from . import env
-
-
-################################################################################
-# Constants
-################################################################################
-HEADERS = {
-    "SCANNER",
-    "DISPATCH W",
-    "DISPATCH E",
-    "DISPATCH N",
-    "DISPATCH S",
-    "DISP W",
-    "DISP E",
-    "DISP N",
-    "DISP S",
-    "GROUND",
-}
 
 
 ################################################################################
@@ -38,7 +23,7 @@ def message_timestamp(data: Dict, convert: bool = False) -> datetime:
 
 
 ################################################################################
-# Filters
+# Signal Filters
 ################################################################################
 def _f_no_data(data: Dict) -> bool:
     # No actual message contents
@@ -63,15 +48,35 @@ def _f_not_recent(data: Dict) -> bool:
     return delta > timedelta(minutes=5)
 
 
-def _f_not_scanner_message(data: Dict) -> bool:
-    message: str = data["message"]
-    return not any([message.upper().startswith(header) for header in HEADERS])
-
-
-FILTERS = [
+SIGNAL_FILTERS: List[Callable[[Dict], bool]] = [
     _f_no_data,
     _f_no_group,
     _f_wrong_group,
     _f_not_recent,
-    _f_not_scanner_message,
+]
+
+
+################################################################################
+# Twitter Filters
+################################################################################
+def _f_retweeted(status: Status) -> bool:
+    # Status is retweeted
+    return status.retweeted
+
+
+def _f_retweet_text(status: Status) -> bool:
+    # Status text starts with "RT @"
+    # Twitter uses that to identify a retweet
+    return status.text.startswith("RT @")
+
+
+def _f_not_trusted_tweeter(status: Status) -> bool:
+    # Status wasn't sent by a trusted tweeter
+    return status.author.screen_name not in env.TRUSTED_TWEETERS
+
+
+TWITTER_FILTERS: List[Callable[[Status], bool]] = [
+    _f_retweeted,
+    _f_retweet_text,
+    _f_not_trusted_tweeter,
 ]
