@@ -32,6 +32,10 @@ HEADERS = {
     "DISP N",
     "DISP S",
     "GROUND",
+    "OTG",
+    "COMMENTARY",
+    "DATA",
+    "CAMERA",
 }
 
 
@@ -111,7 +115,7 @@ def process_twitter_message(status: Status) -> None:
     If the status passes initial filters, strip the status text of any
     hashtags and send it as a signal message to the listening group.
     """
-    log.debug(f"STATUS RECEIVED ({status.id}) {status.text}")
+    log.info(f"STATUS RECEIVED ({status.id}) {status.text}")
     if not _pass_filters(status, TWITTER_FILTERS):
         return None
     # Tweet is too large to be parsed in the OG text
