@@ -32,6 +32,10 @@ HEADERS = {
     "DISP N",
     "DISP S",
     "GROUND",
+    "OTG",
+    "COMMENTARY",
+    "DATA",
+    "CAMERA",
 }
 
 
