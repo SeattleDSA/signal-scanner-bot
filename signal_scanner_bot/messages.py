@@ -123,5 +123,5 @@ def process_twitter_message(status: Status) -> None:
     # Remove hashtags
     text_split = [word for word in text.split() if not word.startswith("#")]
     text = " ".join(text_split)
-    text += f"\nhttps://twitter.com/statuses/{status.id}"
+    text += f"\nhttps://twitter.com/i/status/{status.id}"
     signal.send_message(text, env.LISTEN_GROUP, group=True)
