@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 SEND_HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
 RECEIVE_HASHTAGS = ["#SeattleProtestComms"]
 TWEET_MAX_SIZE = 280
+TWEET_PADDING = 20
 
 
 ################################################################################
@@ -35,16 +36,70 @@ def get_api():
 ################################################################################
 def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
     hashtags = " ".join(SEND_HASHTAGS)
-    if len(tweet + hashtags) >= 260:
-        # TODO: better
-        log.warning(f"Cannot tweet message, exceeds length: {tweet}")
-        return
 
-    formatted = dedent(
-        f"""
-    {tweet} @ {timestamp.strftime('%l:%M:%S%p').strip()}
+    # Check if tweet is longer than 280 minus a 20 char padding, add to list if
+    # not, continue with dividing up text if so
+    if len(tweet + hashtags) >= TWEET_MAX_SIZE - TWEET_PADDING:
 
-    {hashtags}
-    """
-    )
-    api.update_status(formatted)
+        # Split tweet into word list, create empty list to store serialized tweets
+        tweet_word_list = tweet.split(" ")
+        tweets_list = []
+        j = 0
+
+        # For loop through word list and enumerate the index because we'll need
+        # it but don't actually care about the list value so send to null
+        for index, _ in enumerate(tweet_word_list):
+
+            # Check if it is the first tweet, which will contain hashtags and
+            # timestamp. If not first it will only contain the text
+            if len(tweets_list) == 0:
+                sub_tweet = " ".join(tweet_word_list[j:index]) + " " + hashtags
+            else:
+                sub_tweet = " ".join(tweet_word_list[j:index])
+
+            # When length of tweet reaches >260 chars save to list and set
+            # base index for next tweet
+            if len(sub_tweet) > TWEET_MAX_SIZE - TWEET_PADDING:
+                tweets_list.append(" ".join(tweet_word_list[j:index - 1]))
+                j = index - 1
+
+        # Save the last tweet
+        tweets_list.append(" ".join(tweet_word_list[j:]))
+
+        # Append the tweet number / tweet thread length to end of tweet. Again
+        # don't actually care about the list value so sending to null.
+        for index, _ in enumerate(tweets_list):
+            tweets_list[index] += f" {index + 1}/{len(tweets_list)}"
+
+    else:
+        tweets_list = [tweet]
+
+    # tweet_id used to track previous tweet in thread, set to None for first
+    # This iterates through all (even if just one) tweets in list to send
+    tweet_id = None
+    for index, sub_tweet in enumerate(tweets_list):
+
+        # If this is the first tweet add timestamp and hashtags
+        if index == 0:
+            formatted = dedent(
+                f"""
+            {sub_tweet} @ {timestamp.strftime('%H:%M:%S%p').strip()}
+
+            {hashtags}
+            """
+            )
+        else:
+            formatted = dedent(
+                f"""
+            {sub_tweet}
+            """
+            )
+
+        # If first tweet send without reply to tweet ID parameter, if part
+        # of a thread send reply using ID of last tweet sent.
+        if tweet_id is not None:
+            status_obj = api.update_status(status=formatted)
+            tweet_id = status_obj.id
+        else:
+            status_obj = api.update_status(status=formatted, in_reply_to_status_id=tweet_id)
+            tweet_id = status_obj.id
