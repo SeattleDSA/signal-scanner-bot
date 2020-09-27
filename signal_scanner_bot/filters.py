@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, Optional
 
 from tweepy import Status
 
@@ -32,7 +32,7 @@ def _f_no_data(data: Dict) -> bool:
 
 def _f_no_group(data: Dict) -> bool:
     # If listen group is defined and there's not group info
-    return bool(env.LISTEN_GROUP and not data.get("groupInfo"))
+    return not (env.LISTEN_GROUP and data.get("groupInfo"))
 
 
 def _f_wrong_group(data: Dict) -> bool:
@@ -41,10 +41,11 @@ def _f_wrong_group(data: Dict) -> bool:
     return bool(group and env.LISTEN_GROUP and group.get("groupId") != env.LISTEN_GROUP)
 
 
-def _f_not_recent(data: Dict) -> bool:
+def _f_not_recent(data: Dict, now: Optional[datetime] = None) -> bool:
     # Message is not within the last 5 minutes
     timestamp = message_timestamp(data)
-    delta = datetime.now() - timestamp
+    now = now or datetime.now()
+    delta = now - timestamp
     return delta > timedelta(minutes=5)
 
 

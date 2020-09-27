@@ -56,11 +56,53 @@ def test_f_no_data(data, expected, filters_module):
     assert actual == expected
 
 
-@pytest.mark.parametrize("data, listen_group, expected", [
-    # Don't care
-    ({}, False)
-])
+@pytest.mark.parametrize(
+    "data, listen_group, expected",
+    [
+        # Don't care
+        ({}, "foo", True),
+        # Has group, but no group specified in env
+        ({"groupInfo": "asdf"}, "", True),
+        # Has group
+        ({"groupInfo": "asdf"}, "foo", False),
+    ],
+)
 def test_f_no_group(data, listen_group, expected, filters_module, env_module):
     env_module.LISTEN_GROUP = listen_group
     actual = filters_module._f_no_group(data)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "data, listen_group, expected",
+    [
+        # # Don't care, but will still pass
+        # ({}, "foo", False),
+        # # Has group, but no group specified in env, but will still pass
+        # ({"groupInfo": {"groupId": "asdf"}}, "", False),
+        # Differing groups
+        ({"groupInfo": {"groupId": "asdf"}}, "foo", True),
+        # Matching group
+        ({"groupInfo": {"groupId": "foo"}}, "foo", False),
+    ],
+)
+def test_f_wrong_group(data, listen_group, expected, filters_module, env_module):
+    env_module.LISTEN_GROUP = listen_group
+    actual = filters_module._f_wrong_group(data)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "ts, now, expected",
+    [
+        # Not recent
+        (dt(2020, 1, 1, 1, 1, 1), dt(2020, 1, 2, 2, 2, 2), True),
+        (dt(2020, 1, 1, 1, 1, 1), dt(2020, 1, 1, 1, 7, 1), True),
+        # Recent
+        (dt(2020, 1, 1, 1, 0, 1), dt(2020, 1, 1, 1, 1, 1), False),
+    ],
+)
+def test_f_not_recent(ts, now, expected, filters_module):
+    data = {"timestamp": ts.timestamp() * 1000}
+    actual = filters_module._f_not_recent(data, now=now)
     assert actual == expected
