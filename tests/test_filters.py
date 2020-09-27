@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from unittest import mock
 
 import pytest
 
@@ -105,4 +106,41 @@ def test_f_wrong_group(data, listen_group, expected, filters_module, env_module)
 def test_f_not_recent(ts, now, expected, filters_module):
     data = {"timestamp": ts.timestamp() * 1000}
     actual = filters_module._f_not_recent(data, now=now)
+    assert actual == expected
+
+
+################################################################################
+# Twitter filters
+################################################################################
+@pytest.mark.parametrize("retweeted", [True, False])
+def test_f_retweeted(retweeted, filters_module):
+    status = mock.Mock()
+    status.retweeted = retweeted
+    expected = retweeted
+    actual = filters_module._f_retweeted(status)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("RT @", True),
+        ("Starts with useful content", False),
+    ],
+)
+def test_f_retweet_text(text, expected, filters_module):
+    status = mock.Mock()
+    status.text = text
+    actual = filters_module._f_retweet_text(status)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "name, trusted, expected", [("foo", {}, True), ("foo", {"foo"}, False)]
+)
+def test_f_not_trusted_tweeter(name, trusted, expected, filters_module, env_module):
+    status = mock.Mock()
+    status.author.screen_name = name
+    env_module.TRUSTED_TWEETERS = trusted
+    actual = filters_module._f_not_trusted_tweeter(status)
     assert actual == expected
