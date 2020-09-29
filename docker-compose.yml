@@ -8,7 +8,7 @@ services:
       - XDG_DATA_HOME=/app/data
     volumes:
       - signal-cli:/app/data/signal-cli
-      - .:/app
+      - ./signal_scanner_bot:/app/signal_scanner_bot
     restart: always
 volumes:
   signal-cli:
