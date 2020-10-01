@@ -41,7 +41,7 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
     # not, continue with dividing up text if so
     if len(tweet + hashtags) >= TWEET_MAX_SIZE - TWEET_PADDING:
 
-        # Split tweet into word list, create empty list to store serialized tweets
+        # Split tweet into word list, create empty list to store serialized tweets, index to track last position
         tweet_word_list = tweet.split(" ")
         tweets_list = []
         j = 0
@@ -51,16 +51,19 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
         for index, _ in enumerate(tweet_word_list):
 
             # Check if it is the first tweet, which will contain hashtags and
-            # timestamp. If not first it will only contain the text
+            # timestamp. If not first it will only contain the text plus ellipses
+            # and for the final one drop the ellipses
             if len(tweets_list) == 0:
-                sub_tweet = " ".join(tweet_word_list[j:index]) + " " + hashtags
-            else:
+                sub_tweet = " ".join(tweet_word_list[j:index]) + " ..." + hashtags
+            elif index < len(tweet_word_list):
+                sub_tweet = " ".join(tweet_word_list[j:index]) + " ..."
+            elif index == len(tweet_word_list):
                 sub_tweet = " ".join(tweet_word_list[j:index])
 
             # When length of tweet reaches >260 chars save to list and set
             # base index for next tweet
             if len(sub_tweet) > TWEET_MAX_SIZE - TWEET_PADDING:
-                tweets_list.append(" ".join(tweet_word_list[j:index - 1]))
+                tweets_list.append(" ".join(tweet_word_list[j:index - 1]) + " ...")
                 j = index - 1
 
         # Save the last tweet
@@ -83,23 +86,23 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
         if index == 0:
             formatted = dedent(
                 f"""
-            {sub_tweet} @ {timestamp.strftime('%H:%M:%S%p').strip()}
+            {timestamp.strftime('%H:%M:%S%p').strip()}
+
+            {sub_tweet}
 
             {hashtags}
             """
             )
         else:
             formatted = dedent(
-                f"""
-            {sub_tweet}
-            """
+                f"{sub_tweet}"
             )
 
         # If first tweet send without reply to tweet ID parameter, if part
         # of a thread send reply using ID of last tweet sent.
-        if tweet_id is not None:
+        if tweet_id is None:
             status_obj = api.update_status(status=formatted)
-            tweet_id = status_obj.id
+            tweet_id = status_obj._json['id']
         else:
-            status_obj = api.update_status(status=formatted, in_reply_to_status_id=tweet_id)
-            tweet_id = status_obj.id
+            status_obj = api.update_status(status=formatted, in_reply_to_status_id=tweet_id, auto_populate_reply_metadata=True)
+            tweet_id = status_obj._json['id']
