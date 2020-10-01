@@ -48,7 +48,7 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
 
         # For loop through word list and enumerate the index because we'll need
         # it but don't actually care about the list value so send to null
-        for index, _ in enumerate(tweet_word_list):
+        for index in range(len(tweet_word_list)):
 
             # Check if it is the first tweet, which will contain hashtags and
             # timestamp. If not first it will only contain the text plus ellipses
