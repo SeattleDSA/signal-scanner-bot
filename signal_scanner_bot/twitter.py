@@ -71,7 +71,7 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
 
         # Append the tweet number / tweet thread length to end of tweet. Again
         # don't actually care about the list value so sending to null.
-        for index, _ in enumerate(tweets_list):
+        for index in range(len(tweets_list)):
             tweets_list[index] += f" {index + 1}/{len(tweets_list)}"
 
     else:
