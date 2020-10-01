@@ -94,9 +94,7 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
             """
             )
         else:
-            formatted = dedent(
-                f"{sub_tweet}"
-            )
+            formatted = sub_tweet
 
         # If first tweet send without reply to tweet ID parameter, if part
         # of a thread send reply using ID of last tweet sent.
