@@ -102,5 +102,5 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
             status_obj = api.update_status(status=formatted)
             tweet_id = status_obj._json['id']
         else:
-            status_obj = api.update_status(status=formatted, in_reply_to_status_id=tweet_id, auto_populate_reply_metadata=True)
-            tweet_id = status_obj._json['id']
+            status = api.update_status(status=formatted, in_reply_to_status_id=tweet_id, auto_populate_reply_metadata=True)
+            tweet_id = status.id
