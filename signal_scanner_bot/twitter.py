@@ -99,8 +99,8 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
         # If first tweet send without reply to tweet ID parameter, if part
         # of a thread send reply using ID of last tweet sent.
         if tweet_id is None:
-            status_obj = api.update_status(status=formatted)
-            tweet_id = status_obj._json['id']
+            status = api.update_status(status=formatted)
+            tweet_id = status.id
         else:
             status = api.update_status(status=formatted, in_reply_to_status_id=tweet_id, auto_populate_reply_metadata=True)
             tweet_id = status.id
