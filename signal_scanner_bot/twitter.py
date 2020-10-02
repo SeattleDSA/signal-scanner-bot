@@ -70,7 +70,11 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
             status_obj = api.update_status(status=formatted)
             tweet_id = status_obj.id
         else:
-            status_obj = api.update_status(status=formatted, in_reply_to_status_id=tweet_id, auto_populate_reply_metadata=True)
+            status_obj = api.update_status(
+                status=formatted,
+                in_reply_to_status_id=tweet_id,
+                auto_populate_reply_metadata=True,
+            )
             tweet_id = status_obj.id
 
 
@@ -97,7 +101,9 @@ def create_tweet_thread(message: str, hashtags: str) -> List[str]:
         # When length of tweet reaches >260 chars save to list and set
         # base index for next tweet
         if len(sub_tweet) > TWEET_MAX_SIZE - TWEET_PADDING:
-            tweets_list.append(" ".join(tweet_word_list[base_index:index - 1]) + " ...")
+            tweets_list.append(
+                " ".join(tweet_word_list[base_index : index - 1]) + " ..."
+            )
             base_index = index - 1
 
     # Save the last tweet
