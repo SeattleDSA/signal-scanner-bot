@@ -101,8 +101,9 @@ def create_tweet_thread(message: str, hashtags: str) -> List[str]:
         # When length of tweet reaches >260 chars save to list and set
         # base index for next tweet
         if len(sub_tweet) > TWEET_MAX_SIZE - TWEET_PADDING:
+            last_index = index - 1
             tweets_list.append(
-                " ".join(tweet_word_list[base_index : index - 1]) + " ..."
+                " ".join(tweet_word_list[base_index:last_index]) + " ..."
             )
             base_index = index - 1
 
