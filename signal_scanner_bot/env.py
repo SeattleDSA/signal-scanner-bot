@@ -42,7 +42,7 @@ TWITTER_API_SECRET = _env("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN = _env("TWITTER_ACCESS_TOKEN")
 TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET")
 TRUSTED_TWEETERS = set(str(_env("TRUSTED_TWEETERS", default="")).split(","))
-TZ_UTC = _env("TZ_UTC", fail=False)
+TIMEZONE = _env("TIMEZONE", fail=False, default="UTC")
 
 SIGNAL_LOCK = Lock()
 

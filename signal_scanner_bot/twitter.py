@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 SEND_HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
 RECEIVE_HASHTAGS = ["#SeattleProtestComms"]
 TWEET_MAX_SIZE = 280
-TWEET_PADDING = 20
+TWEET_PADDING = 25
 
 
 ################################################################################
@@ -54,7 +54,7 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
         if index == 0:
             formatted = dedent(
                 f"""
-            {timestamp.strftime('%H:%M:%S%p').strip()}
+            {timestamp.strftime('%l:%M:%S%p %Z').strip()}
 
             {sub_tweet}
 

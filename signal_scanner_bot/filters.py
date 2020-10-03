@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Dict, List, Callable
+import pytz
 
 from tweepy import Status
 
@@ -9,17 +10,30 @@ from . import env
 ################################################################################
 # Utilities
 ################################################################################
-def message_timestamp(data: Dict, convert: bool = False) -> datetime:
+def message_timestamp(data: Dict, convert: bool) -> datetime:
+
+    # Get timestamp information from incoming Signal message
     try:
         timestamp_milliseconds = data["timestamp"]
     except KeyError as err:
         raise KeyError(f"Timestamp field is not present in data: {data}") from err
+
+    # Check if we want to convert, return naive dt if not, set timezone if we do
+    if convert:
+
+        # This is awkward looking but the assert is to verify that the env.TIMEZONE
+        # variable is not none. The env.py file forces a default setting, so this
+        # will never be None but mypy testing requires that you test this.
+        time_zone_str = env.TIMEZONE
+        assert time_zone_str is not None
+        time_zone = pytz.timezone(time_zone_str)
+    else:
+        return datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
+
+    # Create datetime object and convert to the specified timezone, then return
     dt = datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
-    if env.TZ_UTC and convert:
-        # TODO: Make this detect automatically
-        # Convert to PDT
-        dt -= timedelta(hours=7)
-    return dt
+    localized_dt = time_zone.localize(dt)
+    return localized_dt
 
 
 ################################################################################
@@ -43,7 +57,7 @@ def _f_wrong_group(data: Dict) -> bool:
 
 def _f_not_recent(data: Dict) -> bool:
     # Message is not within the last 5 minutes
-    timestamp = message_timestamp(data)
+    timestamp = message_timestamp(data, convert=False)
     delta = datetime.now() - timestamp
     return delta > timedelta(minutes=5)
 
