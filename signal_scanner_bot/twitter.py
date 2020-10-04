@@ -4,8 +4,10 @@ from textwrap import dedent
 from typing import List
 
 import tweepy
+from tweepy import TweepError
 
 from . import env
+from . import signal
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +56,7 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
         if index == 0:
             formatted = dedent(
                 f"""
-            {timestamp.strftime('%H:%M:%S%p').strip()}
+            {timestamp.strftime('%l:%M:%S%p').strip()}
 
             {sub_tweet}
 
@@ -67,15 +69,25 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
         # If first tweet send without reply to tweet ID parameter, if part
         # of a thread send reply using ID of last tweet sent.
         if tweet_id is None:
-            status_obj = api.update_status(status=formatted)
-            tweet_id = status_obj.id
+
+            # Try except introduced to ignore duplicate tweet errors
+            try:
+                status_obj = api.update_status(status=formatted)
+                tweet_id = status_obj.id
+            except TweepError as err:
+                logging.warning(f"Error received from the Twitter API:\n{err}")
+                signal.panic(err)
         else:
-            status_obj = api.update_status(
-                status=formatted,
-                in_reply_to_status_id=tweet_id,
-                auto_populate_reply_metadata=True,
-            )
-            tweet_id = status_obj.id
+            try:
+                status_obj = api.update_status(
+                    status=formatted,
+                    in_reply_to_status_id=tweet_id,
+                    auto_populate_reply_metadata=True,
+                )
+                tweet_id = status_obj.id
+            except TweepError as err:
+                logging.warning(f"Error received from the Twitter API:\n{err}")
+                signal.panic(err)
 
 
 def create_tweet_thread(message: str, hashtags: str) -> List[str]:
