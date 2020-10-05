@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from textwrap import dedent
 from typing import List
 
@@ -16,7 +15,7 @@ log = logging.getLogger(__name__)
 SEND_HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
 RECEIVE_HASHTAGS = ["#SeattleProtestComms"]
 TWEET_MAX_SIZE = 280
-TWEET_PADDING = 25
+TWEET_PADDING = 10
 
 
 ################################################################################
@@ -35,7 +34,7 @@ def get_api():
 ################################################################################
 # Sending data
 ################################################################################
-def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
+def send_tweet(tweet: str, api: tweepy.API) -> None:
     hashtags = " ".join(SEND_HASHTAGS)
 
     # Check if tweet is longer than 280 minus a 20 char padding, add to list if
@@ -50,12 +49,10 @@ def send_tweet(tweet: str, timestamp: datetime, api: tweepy.API) -> None:
     tweet_id = None
     for index, sub_tweet in enumerate(tweets_list):
 
-        # If this is the first tweet add timestamp and hashtags
+        # If this is the first tweet add hashtags
         if index == 0:
             formatted = dedent(
                 f"""
-            {timestamp.strftime('%l:%M:%S%p %Z').strip()}
-
             {sub_tweet}
 
             {hashtags}
