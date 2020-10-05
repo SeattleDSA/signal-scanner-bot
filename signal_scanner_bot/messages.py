@@ -88,9 +88,9 @@ def process_signal_message(blob: Dict, api: API) -> None:
 
     # Signal-to-twitter
     if _is_scanner_message(message):
-        timestamp = message_timestamp(data, convert=True)
+        timestamp = message_timestamp(data)
         log.info(f"{timestamp.isoformat()}: '{message}'")
-        twitter.send_tweet(message, timestamp, api)
+        twitter.send_tweet(message, api)
         return
 
     # Check if twitter-to-signal should be on/off
