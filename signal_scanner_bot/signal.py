@@ -12,8 +12,18 @@ log = logging.getLogger(__name__)
 ################################################################################
 # Send message
 ################################################################################
-def send_message(message: str, recipient: Optional[str], group: bool = False):
-    recipient_args = ["-g", str(recipient)] if group else [str(recipient)]
+def send_message(message: str, recipient: Optional[str]):
+    recipient = recipient or ""
+    if recipient.endswith("=="):
+        # Heuristic: this is usually the pattern of group IDs
+        group = True
+    elif recipient.startswith("+"):
+        # Heuristic: this is what phone numbers have to start with
+        group = False
+    else:
+        raise ValueError(f"Supplied recipient is invalid: {recipient}")
+
+    recipient_args = ["-g", recipient] if group else [recipient]
     log.debug("Acquiring signal lock to send")
     with env.SIGNAL_LOCK:
         log.debug("Send lock acquired")
