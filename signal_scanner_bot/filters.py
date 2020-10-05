@@ -9,16 +9,16 @@ from . import env
 ################################################################################
 # Utilities
 ################################################################################
-def message_timestamp(data: Dict, convert: bool = False) -> datetime:
+def message_timestamp(data: Dict) -> datetime:
+
+    # Get timestamp information from incoming Signal message
     try:
         timestamp_milliseconds = data["timestamp"]
     except KeyError as err:
         raise KeyError(f"Timestamp field is not present in data: {data}") from err
+
+    # Create datetime object and convert to the specified timezone, then return
     dt = datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
-    if env.TZ_UTC and convert:
-        # TODO: Make this detect automatically
-        # Convert to PDT
-        dt -= timedelta(hours=7)
     return dt
 
 
