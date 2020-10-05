@@ -34,8 +34,8 @@ def log_vars() -> None:
 
 DEBUG = _env("DEBUG", default=False)
 BOT_NUMBER = _env("BOT_NUMBER")
-ADMIN_NUMBER = _env("ADMIN_NUMBER")
-LISTEN_GROUP = _env("LISTEN_GROUP", fail=False)
+ADMIN_CONTACT = _env("ADMIN_CONTACT")
+LISTEN_CONTACT = _env("LISTEN_CONTACT", fail=False)
 SIGNAL_TIMEOUT = _env("SIGNAL_TIMEOUT", default=10)
 TWITTER_API_KEY = _env("TWITTER_API_KEY")
 TWITTER_API_SECRET = _env("TWITTER_API_SECRET")

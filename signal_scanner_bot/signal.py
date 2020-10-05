@@ -51,6 +51,6 @@ def send_message(message: str, recipient: Optional[str]):
 def panic(err: Exception) -> None:
     # We don't really care if this succeeds, particularly if there's an issue
     # with the signal config
-    log.info(f"Panicing, attempting to call home at {env.ADMIN_NUMBER}")
+    log.info(f"Panicing, attempting to call home at {env.ADMIN_CONTACT}")
     message = f"BOT FAILURE: {err}\n{traceback.format_exc(limit=4)}"
-    send_message(message, env.ADMIN_NUMBER)
+    send_message(message, env.ADMIN_CONTACT)
