@@ -3,8 +3,10 @@ from textwrap import dedent
 from typing import List
 
 import tweepy
+from tweepy import TweepError
 
 from . import env
+from . import signal
 
 log = logging.getLogger(__name__)
 
@@ -45,34 +47,42 @@ def send_tweet(tweet: str, api: tweepy.API) -> None:
         tweets_list = [tweet]
 
     # tweet_id used to track previous tweet in thread, set to None for first
-    # This iterates through all (even if just one) tweets in list to send
+    # This iterates through all (even if just one) tweets in list to send.
+    # try/except catches any Twitter API errors and sends a notification to
+    # the configured admin, but does not fully crash the program out.
     tweet_id = None
-    for index, sub_tweet in enumerate(tweets_list):
+    try:
+        for index, sub_tweet in enumerate(tweets_list):
 
-        # If this is the first tweet add hashtags
-        if index == 0:
-            formatted = dedent(
-                f"""
-            {sub_tweet}
+            # If this is the first tweet add hashtags
+            if index == 0:
+                formatted = dedent(
+                    f"""
+                    {sub_tweet}
 
-            {hashtags}
-            """
-            )
-        else:
-            formatted = sub_tweet
+                    {hashtags}
+                    """
+                )
+            else:
+                formatted = sub_tweet
 
-        # If first tweet send without reply to tweet ID parameter, if part
-        # of a thread send reply using ID of last tweet sent.
-        if tweet_id is None:
-            status_obj = api.update_status(status=formatted)
-            tweet_id = status_obj.id
-        else:
-            status_obj = api.update_status(
-                status=formatted,
-                in_reply_to_status_id=tweet_id,
-                auto_populate_reply_metadata=True,
-            )
-            tweet_id = status_obj.id
+            # If first tweet send without reply to tweet ID parameter, if part
+            # of a thread send reply using ID of last tweet sent.
+            if tweet_id is None:
+                status_obj = api.update_status(status=formatted)
+                tweet_id = status_obj.id
+            else:
+                status_obj = api.update_status(
+                    status=formatted,
+                    in_reply_to_status_id=tweet_id,
+                    auto_populate_reply_metadata=True,
+                )
+                tweet_id = status_obj.id
+    except TweepError as err:
+        log.warning(
+            f"There was an unexpected error returned from the Twitter API:\n{err}"
+        )
+        signal.panic(err)
 
 
 def create_tweet_thread(message: str, hashtags: str) -> List[str]:
