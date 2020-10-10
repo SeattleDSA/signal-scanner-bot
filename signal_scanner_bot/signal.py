@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 ################################################################################
 def send_message(message: str, recipient: Optional[str]):
     recipient = recipient or ""
-    if recipient.endswith("=="):
+    if recipient.endswith("==") and len(recipient) == 24:
         # Heuristic: this is usually the pattern of group IDs
         group = True
     elif recipient.startswith("+"):
