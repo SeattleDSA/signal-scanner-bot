@@ -105,7 +105,7 @@ def process_signal_message(blob: Dict, api: API) -> None:
         return
     log.info(notice)
     env.STATE.LISTENING = listening
-    signal.send_message(notice, env.LISTEN_GROUP, group=True)
+    signal.send_message(notice, env.LISTEN_CONTACT)
 
 
 def process_twitter_message(status: Status) -> None:
@@ -128,4 +128,4 @@ def process_twitter_message(status: Status) -> None:
     text_split = [word for word in text.split() if not word.startswith("#")]
     text = " ".join(text_split)
     text += f"\nhttps://twitter.com/i/status/{status.id}"
-    signal.send_message(text, env.LISTEN_GROUP, group=True)
+    signal.send_message(text, env.LISTEN_CONTACT)
