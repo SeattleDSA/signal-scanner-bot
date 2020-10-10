@@ -1,5 +1,6 @@
 import logging
 import os
+import os.path
 from threading import Lock
 from typing import Optional, Any
 
@@ -13,8 +14,43 @@ _VARS = []
 class _State:
     """Class for holding global state across threads/tasks"""
 
-    LISTENING = False
-    STOP_REQUESTED = False
+    # Initialize state, set LISTENING to true if state file exists,
+    # sets false if not.
+    def __init__(self, file: str):
+        self.file = file
+        self.LISTENING = True if os.path.isfile(file) else False
+        self.STOP_REQUESTED = False
+
+    # Method to update the listening status of the State class
+    # object. Checks for on/off and creates/deletes state file.
+    def update_listening_status(self, status: str) -> Optional[str]:
+        if status == "AUTOSCANON":
+            self.LISTENING = True
+            open(self.file, "a").close()
+            return "==Auto Scanning Activated=="
+        elif status == "AUTOSCANOFF":
+            self.LISTENING = False
+            try:
+                os.remove(self.file)
+            except OSError:
+                pass
+            finally:
+                return "==Auto Scanning Deactivated=="
+        else:
+            # Should be impossible to get her but it's here to
+            # satisfy mypy
+            return None
+
+    # Method to return the current state notification message
+    def get_listening_status_notice(self) -> Optional[str]:
+        if self.LISTENING:
+            return "==Auto Scanning Activated=="
+        elif not self.LISTENING:
+            return "==Auto Scanning Deactivated=="
+        else:
+            # Should be impossible to get her but it's here to
+            # satisfy mypy
+            return None
 
 
 def _env(key: str, fail: bool = True, default: Any = None) -> Optional[str]:
@@ -45,4 +81,4 @@ TRUSTED_TWEETERS = set(str(_env("TRUSTED_TWEETERS", default="")).split(","))
 
 SIGNAL_LOCK = Lock()
 
-STATE = _State()
+STATE = _State("signal_scanner_bot/.autoscanner-state-file")

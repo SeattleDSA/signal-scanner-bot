@@ -3,7 +3,7 @@ import logging
 
 import click
 
-from signal_scanner_bot import env
+from signal_scanner_bot import env, signal
 from signal_scanner_bot.transport import signal_to_twitter, twitter_to_signal
 
 
@@ -26,6 +26,14 @@ def cli(debug: bool) -> None:
         for _log in ["requests", "oauthlib", "requests_oauthlib", "urllib3"]:
             logging.getLogger(_log).setLevel(logging.INFO)
 
+    log.info(
+        f"Loading Autoscan state: {'Enabled' if env.STATE.LISTENING else 'Disabled'}"
+    )
+    signal.send_message(
+        f"STARTUP\n{env.STATE.get_listening_status_notice()}",
+        env.LISTEN_GROUP,
+        group=True,
+    )
     log.info("Listening...")
 
     loop = asyncio.get_event_loop()
