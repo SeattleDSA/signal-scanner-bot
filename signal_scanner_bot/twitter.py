@@ -14,8 +14,7 @@ log = logging.getLogger(__name__)
 ################################################################################
 # Constants
 ################################################################################
-SEND_HASHTAGS = ["#SeattleProtestComms", "#SeaScanner", "#SeattleProtests"]
-RECEIVE_HASHTAGS = ["#SeattleProtestComms"]
+# Leaving these constants for now since they will be removed later
 TWEET_MAX_SIZE = 280
 TWEET_PADDING = 10
 
@@ -37,7 +36,9 @@ def get_api():
 # Sending data
 ################################################################################
 def send_tweet(tweet: str, api: tweepy.API) -> None:
-    hashtags = " ".join(SEND_HASHTAGS)
+    if env.DEBUG:
+        env.SEND_HASHTAGS = [x.replace("#", "_") for x in env.SEND_HASHTAGS]
+    hashtags = " ".join(env.SEND_HASHTAGS)
 
     # Check if tweet is longer than 280 minus a 20 char padding, add to list if
     # not, continue with dividing up text if so
@@ -86,7 +87,8 @@ def send_tweet(tweet: str, api: tweepy.API) -> None:
 
 
 def create_tweet_thread(message: str, hashtags: str) -> List[str]:
-    # Split tweet into word list, create empty list to store serialized tweets, index to track last position
+    # Split tweet into word list, create empty list to store serialized tweets
+    # index to track last position
     tweet_word_list = message.split(" ")
     tweets_list: List[str] = []
     base_index = 0

@@ -32,7 +32,7 @@ def log_vars() -> None:
         log.debug(f"{key}={value}")
 
 
-DEBUG = _env("DEBUG", default=False)
+DEBUG = True if str(_env("DEBUG", default="false")).lower() == "true" else False
 BOT_NUMBER = _env("BOT_NUMBER")
 ADMIN_NUMBER = _env("ADMIN_NUMBER")
 LISTEN_GROUP = _env("LISTEN_GROUP", fail=False)
@@ -42,6 +42,13 @@ TWITTER_API_SECRET = _env("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN = _env("TWITTER_ACCESS_TOKEN")
 TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET")
 TRUSTED_TWEETERS = set(str(_env("TRUSTED_TWEETERS", default="")).split(","))
+SEND_HASHTAGS = str(_env("SEND_HASHTAGS", default="")).split(",")
+RECEIVE_HASHTAGS = str(_env("RECEIVE_HASHTAGS", default="")).split(",")
+SIGNAL_MESSAGE_HEADERS = set(str(_env("SIGNAL_MESSAGE_HEADERS", default="")).split(","))
+
+# Check for testing env var and update other vars as necessary
+TESTING = True if str(_env("TESTING", default="false")).lower() == "true" else False
+DEBUG = True if TESTING else DEBUG
 
 SIGNAL_LOCK = Lock()
 
