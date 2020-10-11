@@ -16,9 +16,9 @@ class _State:
 
     # Initialize state, set LISTENING to true if state file exists,
     # sets false if not.
-    def __init__(self, file: str):
+    def __init__(self, file: Path):
         self.file = file
-        self.LISTENING = True if os.path.isfile(file) else False
+        self.LISTENING = self.file.exists()
         self.STOP_REQUESTED = False
 
     # Method to update the listening status of the State class
