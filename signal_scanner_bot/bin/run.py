@@ -29,11 +29,6 @@ def cli(debug: bool) -> None:
     log.info(
         f"Loading Autoscan state: {'Enabled' if env.STATE.LISTENING else 'Disabled'}"
     )
-    signal.send_message(
-        f"STARTUP\n{env.STATE.get_listening_status_notice()}",
-        env.LISTEN_GROUP,
-        group=True,
-    )
     log.info("Listening...")
 
     loop = asyncio.get_event_loop()
