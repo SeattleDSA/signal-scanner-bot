@@ -1,7 +1,7 @@
 import logging
 import os
 from threading import Lock
-from typing import Optional, Any
+from typing import Any, Callable, List, Set
 
 
 log = logging.getLogger(__name__)
@@ -17,14 +17,47 @@ class _State:
     STOP_REQUESTED = False
 
 
-def _env(key: str, fail: bool = True, default: Any = None) -> Optional[str]:
+def _env(
+    key: str,
+    convert: Callable[[str], Any],
+    fail: bool = True,
+    default: Any = None,
+) -> Any:
     value = os.environ.get(key)
     if value is None:
         if fail and default is None:
             raise KeyError(f"Key '{key}' is not present in environment!")
         return default
+    value = convert(value)
     _VARS.append((key, value))
     return value
+
+
+################################################################################
+# Casting functions
+################################################################################
+# Functions to ensure the correct types are always returned by the _env function
+def _cast_to_bool(to_cast: str) -> bool:
+    return to_cast.lower() == "true"
+
+
+def _cast_to_list(to_cast: str) -> List[str]:
+    return to_cast.split(",")
+
+
+def _cast_to_set(to_cast: str) -> Set[str]:
+    return set(_cast_to_list(to_cast))
+
+
+def _cast_to_string(to_cast: str) -> str:
+    if isinstance(to_cast, str):
+        return to_cast
+    else:
+        return ""
+
+
+def _cast_to_int(to_cast: str) -> int:
+    return int(to_cast)
 
 
 def log_vars() -> None:
@@ -32,16 +65,26 @@ def log_vars() -> None:
         log.debug(f"{key}={value}")
 
 
-DEBUG = _env("DEBUG", default=False)
-BOT_NUMBER = _env("BOT_NUMBER")
-ADMIN_CONTACT = _env("ADMIN_CONTACT")
-LISTEN_CONTACT = _env("LISTEN_CONTACT", fail=False)
-SIGNAL_TIMEOUT = _env("SIGNAL_TIMEOUT", default=10)
-TWITTER_API_KEY = _env("TWITTER_API_KEY")
-TWITTER_API_SECRET = _env("TWITTER_API_SECRET")
-TWITTER_ACCESS_TOKEN = _env("TWITTER_ACCESS_TOKEN")
-TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET")
-TRUSTED_TWEETERS = set(str(_env("TRUSTED_TWEETERS", default="")).split(","))
+################################################################################
+# Environment Variable declarations
+################################################################################
+# Declares all environment variables for application execution
+TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
+DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
+BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
+ADMIN_CONTACT = _env("ADMIN_CONTACT", convert=_cast_to_string)
+LISTEN_CONTACT = _env("LISTEN_CONTACT", convert=_cast_to_string, fail=False)
+SIGNAL_TIMEOUT = _env("SIGNAL_TIMEOUT", convert=_cast_to_int, default=10)
+TWITTER_API_KEY = _env("TWITTER_API_KEY", convert=_cast_to_string)
+TWITTER_API_SECRET = _env("TWITTER_API_SECRET", convert=_cast_to_string)
+TWITTER_ACCESS_TOKEN = _env("TWITTER_ACCESS_TOKEN", convert=_cast_to_string)
+TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET", convert=_cast_to_string)
+TRUSTED_TWEETERS = _env("TRUSTED_TWEETERS", convert=_cast_to_set, default={})
+SEND_HASHTAGS = _env("SEND_HASHTAGS", convert=_cast_to_list, default=[])
+RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_cast_to_list, default=[])
+SIGNAL_MESSAGE_HEADERS = _env(
+    "SIGNAL_MESSAGE_HEADERS", convert=_cast_to_set, default={}
+)
 
 SIGNAL_LOCK = Lock()
 

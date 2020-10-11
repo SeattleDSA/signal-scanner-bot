@@ -21,22 +21,6 @@ D = TypeVar("D")
 NON_ALPHA_NUMERIC = re.compile(r"[\W]+")
 START_LISTENING = "AUTOSCANON"
 STOP_LISTENING = "AUTOSCANOFF"
-HEADERS = {
-    "SCANNER",
-    "DISPATCH W",
-    "DISPATCH E",
-    "DISPATCH N",
-    "DISPATCH S",
-    "DISP W",
-    "DISP E",
-    "DISP N",
-    "DISP S",
-    "GROUND",
-    "OTG",
-    "COMMENTARY",
-    "DATA",
-    "CAMERA",
-}
 
 
 def _pass_filters(data: D, filters: List[Callable[[D], bool]]) -> bool:
@@ -57,7 +41,9 @@ def _is_scanner_message(message: str) -> bool:
     """
     Check if a string starts with any of the header prefixes.
     """
-    return any([message.upper().startswith(header) for header in HEADERS])
+    return any(
+        [message.upper().startswith(header) for header in env.SIGNAL_MESSAGE_HEADERS]
+    )
 
 
 def _condense_command(message: str) -> str:
