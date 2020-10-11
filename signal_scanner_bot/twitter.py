@@ -36,7 +36,7 @@ def get_api():
 # Sending data
 ################################################################################
 def send_tweet(tweet: str, api: tweepy.API) -> None:
-    if env.DEBUG:
+    if env.TESTING:
         env.SEND_HASHTAGS = [x.replace("#", "_") for x in env.SEND_HASHTAGS]
     hashtags = " ".join(env.SEND_HASHTAGS)
 
