@@ -26,6 +26,9 @@ def cli(debug: bool) -> None:
         for _log in ["requests", "oauthlib", "requests_oauthlib", "urllib3"]:
             logging.getLogger(_log).setLevel(logging.INFO)
 
+    log.info(
+        f"Loading Autoscan state: {'Enabled' if env.STATE.LISTENING else 'Disabled'}"
+    )
     log.info("Listening...")
 
     loop = asyncio.get_event_loop()

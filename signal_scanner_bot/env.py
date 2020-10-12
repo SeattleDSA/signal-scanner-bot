@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, List, Set
 
@@ -8,13 +9,45 @@ log = logging.getLogger(__name__)
 
 
 _VARS = []
+START_LISTENING = "AUTOSCANON"
+STOP_LISTENING = "AUTOSCANOFF"
+START_LISTENING_NOTIFICATION = "==Auto Scanning Activated=="
+STOP_LISTENING_NOTIFICATION = "==Auto Scanning Deactivated=="
 
 
 class _State:
     """Class for holding global state across threads/tasks"""
 
-    LISTENING = False
-    STOP_REQUESTED = False
+    # Initialize state, set LISTENING to true if state file exists,
+    # sets false if not.
+    def __init__(self, file: Path):
+        self.file = file
+        self.LISTENING = self.file.exists()
+        self.STOP_REQUESTED = False
+
+    # Method to update the listening status of the State class
+    # object. Checks for on/off and creates/deletes state file.
+    def update_listening_status(self, status: str) -> str:
+        if status == START_LISTENING:
+            self.LISTENING = True
+            self.file.touch()
+            return START_LISTENING_NOTIFICATION
+        elif status == STOP_LISTENING:
+            self.LISTENING = False
+            self.file.unlink(missing_ok=True)
+            return STOP_LISTENING_NOTIFICATION
+        else:
+            raise ValueError(
+                f"Value {status} provided to _State object, expected {START_LISTENING} or {STOP_LISTENING}."
+            )
+
+    # Method to return the current state notification message
+    def get_listening_status_notice(self) -> str:
+        return (
+            START_LISTENING_NOTIFICATION
+            if self.LISTENING
+            else STOP_LISTENING_NOTIFICATION
+        )
 
 
 def _env(
@@ -27,8 +60,8 @@ def _env(
     if value is None:
         if fail and default is None:
             raise KeyError(f"Key '{key}' is not present in environment!")
-        return default
-    value = convert(value)
+        value = default
+    value = convert(str(value))
     _VARS.append((key, value))
     return value
 
@@ -60,6 +93,10 @@ def _cast_to_int(to_cast: str) -> int:
     return int(to_cast)
 
 
+def _cast_to_path(to_cast: str) -> Path:
+    return Path(to_cast)
+
+
 def log_vars() -> None:
     for key, value in _VARS:
         log.debug(f"{key}={value}")
@@ -85,7 +122,12 @@ RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_cast_to_list, default=[])
 SIGNAL_MESSAGE_HEADERS = _env(
     "SIGNAL_MESSAGE_HEADERS", convert=_cast_to_set, default={}
 )
+AUTOSCAN_STATE_FILE_PATH = _env(
+    "AUTOSCAN_STATE_FILE_PATH",
+    convert=_cast_to_path,
+    default="signal_scanner_bot/.autoscanner-state-file",
+)
 
 SIGNAL_LOCK = Lock()
 
-STATE = _State()
+STATE = _State(AUTOSCAN_STATE_FILE_PATH)

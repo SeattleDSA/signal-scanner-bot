@@ -19,8 +19,6 @@ D = TypeVar("D")
 # Constants
 ################################################################################
 NON_ALPHA_NUMERIC = re.compile(r"[\W]+")
-START_LISTENING = "AUTOSCANON"
-STOP_LISTENING = "AUTOSCANOFF"
 
 
 def _pass_filters(data: D, filters: List[Callable[[D], bool]]) -> bool:
@@ -81,16 +79,7 @@ def process_signal_message(blob: Dict, api: API) -> None:
 
     # Check if twitter-to-signal should be on/off
     condensed = _condense_command(message)
-    if condensed == START_LISTENING:
-        notice = "==Auto Scanning Activated=="
-        listening = True
-    elif condensed == STOP_LISTENING:
-        notice = "==Auto Scanning Deactivated=="
-        listening = False
-    else:
-        return
-    log.info(notice)
-    env.STATE.LISTENING = listening
+    notice = env.STATE.update_listening_status(condensed)
     signal.send_message(notice, env.LISTEN_CONTACT)
 
 
