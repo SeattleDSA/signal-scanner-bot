@@ -1,8 +1,8 @@
 import logging
 import os
-import os.path
+from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, List, Set
+from typing import Any, Optional, Callable, List, Set
 
 
 log = logging.getLogger(__name__)
@@ -16,30 +16,26 @@ class _State:
 
     # Initialize state, set LISTENING to true if state file exists,
     # sets false if not.
-    def __init__(self, file: Path):
+    def __init__(self, file: Path = Path("signal_scanner_bot/.autoscanner-state-file")):
         self.file = file
         self.LISTENING = self.file.exists()
         self.STOP_REQUESTED = False
 
     # Method to update the listening status of the State class
     # object. Checks for on/off and creates/deletes state file.
-    def update_listening_status(self, status: str) -> Optional[str]:
+    def update_listening_status(self, status: str) -> str:
         if status == "AUTOSCANON":
             self.LISTENING = True
-            open(self.file, "a").close()
+            self.file.touch()
             return "==Auto Scanning Activated=="
         elif status == "AUTOSCANOFF":
             self.LISTENING = False
-            try:
-                os.remove(self.file)
-            except OSError:
-                pass
-            finally:
-                return "==Auto Scanning Deactivated=="
+            self.file.unlink(missing_ok=True)
+            return "==Auto Scanning Deactivated=="
         else:
-            # Should be impossible to get her but it's here to
-            # satisfy mypy
-            return None
+            raise ValueError(
+                f"Value ({status}) provided to _State object, expected AUTOSCANON or AUTOSCANOFF."
+            )
 
     # Method to return the current state notification message
     def get_listening_status_notice(self) -> Optional[str]:
@@ -121,7 +117,10 @@ RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_cast_to_list, default=[])
 SIGNAL_MESSAGE_HEADERS = _env(
     "SIGNAL_MESSAGE_HEADERS", convert=_cast_to_set, default={}
 )
+AUTOSCAN_STATE_FILE_PATH = _env(
+    "AUTOSCAN_STATE_FILE_PATH", convert=_cast_to_string, default=""
+)
 
 SIGNAL_LOCK = Lock()
 
-STATE = _State("signal_scanner_bot/.autoscanner-state-file")
+STATE = _State(Path(AUTOSCAN_STATE_FILE_PATH)) if AUTOSCAN_STATE_FILE_PATH else _State()

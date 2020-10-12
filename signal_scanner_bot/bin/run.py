@@ -3,7 +3,7 @@ import logging
 
 import click
 
-from signal_scanner_bot import env, signal
+from signal_scanner_bot import env
 from signal_scanner_bot.transport import signal_to_twitter, twitter_to_signal
 
 
