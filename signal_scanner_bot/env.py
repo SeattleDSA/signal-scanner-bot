@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 from threading import Lock
-from typing import Any, Optional, Callable, List, Set
+from typing import Any, Callable, List, Set
 
 
 log = logging.getLogger(__name__)
@@ -38,19 +38,16 @@ class _State:
             return STOP_LISTENING_NOTIFICATION
         else:
             raise ValueError(
-                f"Value {status} provided to _State object, expected AUTOSCANON or AUTOSCANOFF."
+                f"Value {status} provided to _State object, expected {START_LISTENING} or {STOP_LISTENING}."
             )
 
     # Method to return the current state notification message
-    def get_listening_status_notice(self) -> Optional[str]:
-        if self.LISTENING:
-            return START_LISTENING_NOTIFICATION
-        elif not self.LISTENING:
-            return STOP_LISTENING_NOTIFICATION
-        else:
-            # Should be impossible to get her but it's here to
-            # satisfy mypy
-            return None
+    def get_listening_status_notice(self) -> str:
+        return (
+            START_LISTENING_NOTIFICATION
+            if self.LISTENING
+            else STOP_LISTENING_NOTIFICATION
+        )
 
 
 def _env(

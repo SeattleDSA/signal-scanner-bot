@@ -79,7 +79,7 @@ def process_signal_message(blob: Dict, api: API) -> None:
 
     # Check if twitter-to-signal should be on/off
     condensed = _condense_command(message)
-    notice = str(env.STATE.update_listening_status(condensed))
+    notice = env.STATE.update_listening_status(condensed)
     signal.send_message(notice, env.LISTEN_CONTACT)
 
 
