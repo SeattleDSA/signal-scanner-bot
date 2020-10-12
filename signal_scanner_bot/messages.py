@@ -19,8 +19,6 @@ D = TypeVar("D")
 # Constants
 ################################################################################
 NON_ALPHA_NUMERIC = re.compile(r"[\W]+")
-START_LISTENING = "AUTOSCANON"
-STOP_LISTENING = "AUTOSCANOFF"
 
 
 def _pass_filters(data: D, filters: List[Callable[[D], bool]]) -> bool:

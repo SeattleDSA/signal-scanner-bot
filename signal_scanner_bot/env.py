@@ -9,6 +9,10 @@ log = logging.getLogger(__name__)
 
 
 _VARS = []
+START_LISTENING = "AUTOSCANON"
+STOP_LISTENING = "AUTOSCANOFF"
+START_LISTENING_NOTIFICATION = "==Auto Scanning Activated=="
+STOP_LISTENING_NOTIFICATION = "==Auto Scanning Deactivated=="
 
 
 class _State:
@@ -16,7 +20,7 @@ class _State:
 
     # Initialize state, set LISTENING to true if state file exists,
     # sets false if not.
-    def __init__(self, file: Path = Path("signal_scanner_bot/.autoscanner-state-file")):
+    def __init__(self, file: Path):
         self.file = file
         self.LISTENING = self.file.exists()
         self.STOP_REQUESTED = False
@@ -24,25 +28,25 @@ class _State:
     # Method to update the listening status of the State class
     # object. Checks for on/off and creates/deletes state file.
     def update_listening_status(self, status: str) -> str:
-        if status == "AUTOSCANON":
+        if status == START_LISTENING:
             self.LISTENING = True
             self.file.touch()
-            return "==Auto Scanning Activated=="
-        elif status == "AUTOSCANOFF":
+            return START_LISTENING_NOTIFICATION
+        elif status == STOP_LISTENING:
             self.LISTENING = False
             self.file.unlink(missing_ok=True)
-            return "==Auto Scanning Deactivated=="
+            return STOP_LISTENING_NOTIFICATION
         else:
             raise ValueError(
-                f"Value ({status}) provided to _State object, expected AUTOSCANON or AUTOSCANOFF."
+                f"Value {status} provided to _State object, expected AUTOSCANON or AUTOSCANOFF."
             )
 
     # Method to return the current state notification message
     def get_listening_status_notice(self) -> Optional[str]:
         if self.LISTENING:
-            return "==Auto Scanning Activated=="
+            return START_LISTENING_NOTIFICATION
         elif not self.LISTENING:
-            return "==Auto Scanning Deactivated=="
+            return STOP_LISTENING_NOTIFICATION
         else:
             # Should be impossible to get her but it's here to
             # satisfy mypy
@@ -59,8 +63,8 @@ def _env(
     if value is None:
         if fail and default is None:
             raise KeyError(f"Key '{key}' is not present in environment!")
-        return default
-    value = convert(value)
+        value = default
+    value = convert(str(value))
     _VARS.append((key, value))
     return value
 
@@ -92,6 +96,10 @@ def _cast_to_int(to_cast: str) -> int:
     return int(to_cast)
 
 
+def _cast_to_path(to_cast: str) -> Path:
+    return Path(to_cast)
+
+
 def log_vars() -> None:
     for key, value in _VARS:
         log.debug(f"{key}={value}")
@@ -118,9 +126,11 @@ SIGNAL_MESSAGE_HEADERS = _env(
     "SIGNAL_MESSAGE_HEADERS", convert=_cast_to_set, default={}
 )
 AUTOSCAN_STATE_FILE_PATH = _env(
-    "AUTOSCAN_STATE_FILE_PATH", convert=_cast_to_string, default=""
+    "AUTOSCAN_STATE_FILE_PATH",
+    convert=_cast_to_path,
+    default="signal_scanner_bot/.autoscanner-state-file",
 )
 
 SIGNAL_LOCK = Lock()
 
-STATE = _State(Path(AUTOSCAN_STATE_FILE_PATH)) if AUTOSCAN_STATE_FILE_PATH else _State()
+STATE = _State(AUTOSCAN_STATE_FILE_PATH)
