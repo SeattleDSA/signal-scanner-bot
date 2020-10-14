@@ -63,7 +63,7 @@ SIGNAL_FILTERS: List[Callable[[Dict], bool]] = [
 ################################################################################
 def _f_retweeted(status: Status) -> bool:
     # Status is retweeted
-    return status.retweeted
+    return hasattr(status, "quoted_status")
 
 
 def _f_retweet_text(status: Status) -> bool:
@@ -78,7 +78,5 @@ def _f_not_trusted_tweeter(status: Status) -> bool:
 
 
 TWITTER_FILTERS: List[Callable[[Status], bool]] = [
-    _f_retweeted,
-    _f_retweet_text,
     _f_not_trusted_tweeter,
 ]

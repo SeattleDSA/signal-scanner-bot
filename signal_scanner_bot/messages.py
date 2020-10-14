@@ -51,6 +51,34 @@ def _condense_command(message: str) -> str:
     return NON_ALPHA_NUMERIC.sub("", message).upper()
 
 
+def _strip_tweet_hashtags(status_text: str) -> str:
+    """
+    Strip out words from tweet that are hashtags (ie. begin with a #)
+    """
+    text_split = [word for word in status_text.split() if not word.startswith("#")]
+    text = " ".join(text_split)
+    return text
+
+
+def get_tweet_text(status: Status) -> str:
+    """
+    Extract full text whether tweet is extended or not
+    """
+    if hasattr(status, "extended_tweet"):
+        return _strip_tweet_hashtags(status.extended_tweet["full_text"])
+    else:
+        return _strip_tweet_hashtags(status.text)
+
+
+def format_retweet_text(status: Status) -> str:
+    """
+    Extract text from retweet and build signal message
+    """
+    top_level_tweet_text = _get_tweet_text(status)
+    quoted_tweet_text = _get_tweet_text(status.quoted_status)
+    return f"top level tweet:\n{top_level_tweet_text}\n\nquoted tweet:\n{quoted_tweet_text}"
+
+
 def process_signal_message(blob: Dict, api: API) -> None:
     """
     Process a signal message.
@@ -94,14 +122,10 @@ def process_twitter_message(status: Status) -> None:
     log.info(f"STATUS RECEIVED ({status.id}) {status.text}")
     if not _pass_filters(status, TWITTER_FILTERS):
         return None
-    # Tweet is too large to be parsed in the OG text
-    if hasattr(status, "extended_tweet"):
-        text = status.extended_tweet["full_text"]
-    else:
-        text = status.text
 
-    # Remove hashtags
-    text_split = [word for word in text.split() if not word.startswith("#")]
-    text = " ".join(text_split)
-    text += f"\nhttps://twitter.com/i/status/{status.id}"
-    signal.send_message(text, env.LISTEN_CONTACT)
+    if hasattr(status, "quoted_status"):
+        message = format_retweet_text(status)
+    else:
+        message = et_tweet_text(status)
+
+    signal.send_message(message, env.LISTEN_CONTACT)
