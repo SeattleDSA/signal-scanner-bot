@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, List, Set
+from typing import Any, Callable, List, Set, Optional
 
 
 log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class _State:
 
     # Method to update the listening status of the State class
     # object. Checks for on/off and creates/deletes state file.
-    def update_listening_status(self, status: str) -> str:
+    def update_listening_status(self, status: str) -> Optional[str]:
         if status == START_LISTENING:
             self.LISTENING = True
             self.file.touch()
@@ -37,9 +37,7 @@ class _State:
             self.file.unlink(missing_ok=True)
             return STOP_LISTENING_NOTIFICATION
         else:
-            raise ValueError(
-                f"Value {status} provided to _State object, expected {START_LISTENING} or {STOP_LISTENING}."
-            )
+            return None
 
     # Method to return the current state notification message
     def get_listening_status_notice(self) -> str:
