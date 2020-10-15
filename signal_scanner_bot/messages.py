@@ -74,9 +74,12 @@ def format_retweet_text(status: Status) -> str:
     """
     Extract text from retweet and build signal message
     """
-    top_level_tweet_text = _get_tweet_text(status)
-    quoted_tweet_text = _get_tweet_text(status.quoted_status)
-    return f"top level tweet:\n{top_level_tweet_text}\n\nquoted tweet:\n{quoted_tweet_text}"
+    top_level_tweet_text = get_tweet_text(status)
+    quoted_tweet_text = get_tweet_text(status.quoted_status)
+    if top_level_tweet_text:
+        return f"top level tweet:\n{top_level_tweet_text}\n\nquoted tweet:\n{quoted_tweet_text}"
+    else:
+        return quoted_tweet_text
 
 
 def process_signal_message(blob: Dict, api: API) -> None:
@@ -127,6 +130,6 @@ def process_twitter_message(status: Status) -> None:
     if hasattr(status, "quoted_status"):
         message = format_retweet_text(status)
     else:
-        message = et_tweet_text(status)
+        message = get_tweet_text(status)
 
     signal.send_message(message, env.LISTEN_CONTACT)

@@ -61,17 +61,6 @@ SIGNAL_FILTERS: List[Callable[[Dict], bool]] = [
 ################################################################################
 # Twitter Filters
 ################################################################################
-def _f_retweeted(status: Status) -> bool:
-    # Status is retweeted
-    return hasattr(status, "quoted_status")
-
-
-def _f_retweet_text(status: Status) -> bool:
-    # Status text starts with "RT @"
-    # Twitter uses that to identify a retweet
-    return status.text.startswith("RT @")
-
-
 def _f_not_trusted_tweeter(status: Status) -> bool:
     # Status wasn't sent by a trusted tweeter
     return status.author.screen_name not in env.TRUSTED_TWEETERS
