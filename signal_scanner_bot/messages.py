@@ -81,15 +81,17 @@ def format_retweet_text(status: Status) -> str:
 
     # Build Signal message
     if top_level_tweet_text:
-        return dedent(f"""\
+        return dedent(
+            f"""\
         top level tweet:
         {top_level_tweet_text}
         https://twitter.com/i/status/{status.id}
-        
+
         quoted tweet:
         {quoted_tweet_text}
         https://twitter.com/i/status/{status.quoted_status.id}
-        """)
+        """
+        )
     else:
         return f"{quoted_tweet_text}\nhttps://twitter.com/i/status/{status.id}"
 
