@@ -1,5 +1,6 @@
 import logging
 import re
+from textwrap import dedent
 from typing import Dict, List, Callable, TypeVar
 
 from tweepy import Status, API
@@ -74,12 +75,23 @@ def format_retweet_text(status: Status) -> str:
     """
     Extract text from retweet and build signal message
     """
+    # Pull text out of the main tweet and sub tweet
     top_level_tweet_text = get_tweet_text(status)
     quoted_tweet_text = get_tweet_text(status.quoted_status)
+
+    # Build Signal message
     if top_level_tweet_text:
-        return f"top level tweet:\n{top_level_tweet_text}\n\nquoted tweet:\n{quoted_tweet_text}"
+        return dedent(f"""\
+        top level tweet:
+        {top_level_tweet_text}
+        https://twitter.com/i/status/{status.id}
+        
+        quoted tweet:
+        {quoted_tweet_text}
+        https://twitter.com/i/status/{status.quoted_status.id}
+        """)
     else:
-        return quoted_tweet_text
+        return f"{quoted_tweet_text}\nhttps://twitter.com/i/status/{status.id}"
 
 
 def process_signal_message(blob: Dict, api: API) -> None:
@@ -133,4 +145,5 @@ def process_twitter_message(status: Status) -> None:
         message = get_tweet_text(status)
 
     # On the off chance a message is an empty string just skip sending
-    if message: signal.send_message(message, env.LISTEN_CONTACT)
+    if message:
+        signal.send_message(message, env.LISTEN_CONTACT)
