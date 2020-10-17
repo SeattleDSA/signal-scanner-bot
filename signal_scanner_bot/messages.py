@@ -61,6 +61,13 @@ def _strip_tweet_hashtags(status_text: str) -> str:
     return text
 
 
+def build_tweet_url(status: Status) -> str:
+    """
+    Returns a link to the tweet provided
+    """
+    return f"https://twitter.com/i/status/{status.id}"
+
+
 def get_tweet_text(status: Status) -> str:
     """
     Extract full text whether tweet is extended or not
@@ -69,6 +76,13 @@ def get_tweet_text(status: Status) -> str:
         return _strip_tweet_hashtags(status.extended_tweet["full_text"])
     else:
         return _strip_tweet_hashtags(status.text)
+
+
+def format_tweet_text(status: Status) -> str:
+    """
+    Extract text from a tweet and build a signal message
+    """
+    return f"{get_tweet_text(status)}\n{build_tweet_url(status)}"
 
 
 def format_retweet_text(status: Status) -> str:
@@ -83,17 +97,17 @@ def format_retweet_text(status: Status) -> str:
     if top_level_tweet_text:
         return dedent(
             f"""\
-        top level tweet:
+        [QUOTE TWEET]:
         {top_level_tweet_text}
-        https://twitter.com/i/status/{status.id}
+        {build_tweet_url(status)}
 
-        quoted tweet:
+        [ORIGINAL TWEET]:
         {quoted_tweet_text}
-        https://twitter.com/i/status/{status.quoted_status.id}
+        {build_tweet_url(status.quoted_status)}
         """
         )
     else:
-        return f"{quoted_tweet_text}\nhttps://twitter.com/i/status/{status.id}"
+        return format_tweet_text(status.quoted_status)
 
 
 def process_signal_message(blob: Dict, api: API) -> None:
@@ -144,7 +158,7 @@ def process_twitter_message(status: Status) -> None:
     if hasattr(status, "quoted_status"):
         message = format_retweet_text(status)
     else:
-        message = get_tweet_text(status)
+        message = format_tweet_text(status)
 
     # On the off chance a message is an empty string just skip sending
     if message:

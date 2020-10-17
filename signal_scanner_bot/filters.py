@@ -66,6 +66,13 @@ def _f_not_trusted_tweeter(status: Status) -> bool:
     return status.author.screen_name not in env.TRUSTED_TWEETERS
 
 
+def _f_retweet_text(status: Status) -> bool:
+    # Status text starts with "RT @"
+    # Twitter uses that to identify a retweet
+    return status.text.startswith("RT @")
+
+
 TWITTER_FILTERS: List[Callable[[Status], bool]] = [
     _f_not_trusted_tweeter,
+    _f_retweet_text,
 ]
