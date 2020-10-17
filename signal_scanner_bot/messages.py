@@ -132,4 +132,5 @@ def process_twitter_message(status: Status) -> None:
     else:
         message = get_tweet_text(status)
 
-    signal.send_message(message, env.LISTEN_CONTACT)
+    # On the off chance a message is an empty string just skip sending
+    if message: signal.send_message(message, env.LISTEN_CONTACT)
