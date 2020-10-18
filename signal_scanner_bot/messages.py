@@ -1,5 +1,6 @@
 import logging
 import re
+from textwrap import dedent
 from typing import Dict, List, Callable, TypeVar
 
 from tweepy import Status, API
@@ -51,6 +52,64 @@ def _condense_command(message: str) -> str:
     return NON_ALPHA_NUMERIC.sub("", message).upper()
 
 
+def _strip_tweet_hashtags(status_text: str) -> str:
+    """
+    Strip out words from tweet that are hashtags (ie. begin with a #)
+    """
+    text_split = [word for word in status_text.split() if not word.startswith("#")]
+    text = " ".join(text_split)
+    return text
+
+
+def build_tweet_url(status: Status) -> str:
+    """
+    Returns a link to the tweet provided
+    """
+    return f"https://twitter.com/i/status/{status.id}"
+
+
+def get_tweet_text(status: Status) -> str:
+    """
+    Extract full text whether tweet is extended or not
+    """
+    if hasattr(status, "extended_tweet"):
+        return _strip_tweet_hashtags(status.extended_tweet["full_text"])
+    else:
+        return _strip_tweet_hashtags(status.text)
+
+
+def format_tweet_text(status: Status) -> str:
+    """
+    Extract text from a tweet and build a signal message
+    """
+    return f"{get_tweet_text(status)}\n{build_tweet_url(status)}"
+
+
+def format_retweet_text(status: Status) -> str:
+    """
+    Extract text from retweet and build signal message
+    """
+    # Pull text out of the main tweet and sub tweet
+    top_level_tweet_text = get_tweet_text(status)
+    quoted_tweet_text = get_tweet_text(status.quoted_status)
+
+    # Build Signal message
+    if top_level_tweet_text:
+        return dedent(
+            f"""\
+        [QUOTE TWEET]:
+        {top_level_tweet_text}
+        {build_tweet_url(status)}
+
+        [ORIGINAL TWEET]:
+        {quoted_tweet_text}
+        {build_tweet_url(status.quoted_status)}
+        """
+        )
+    else:
+        return format_tweet_text(status.quoted_status)
+
+
 def process_signal_message(blob: Dict, api: API) -> None:
     """
     Process a signal message.
@@ -95,14 +154,12 @@ def process_twitter_message(status: Status) -> None:
     log.info(f"STATUS RECEIVED ({status.id}) {status.text}")
     if not _pass_filters(status, TWITTER_FILTERS):
         return None
-    # Tweet is too large to be parsed in the OG text
-    if hasattr(status, "extended_tweet"):
-        text = status.extended_tweet["full_text"]
-    else:
-        text = status.text
 
-    # Remove hashtags
-    text_split = [word for word in text.split() if not word.startswith("#")]
-    text = " ".join(text_split)
-    text += f"\nhttps://twitter.com/i/status/{status.id}"
-    signal.send_message(text, env.LISTEN_CONTACT)
+    if hasattr(status, "quoted_status"):
+        message = format_retweet_text(status)
+    else:
+        message = format_tweet_text(status)
+
+    # On the off chance a message is an empty string just skip sending
+    if message:
+        signal.send_message(message, env.LISTEN_CONTACT)
