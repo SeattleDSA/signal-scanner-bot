@@ -17,7 +17,7 @@ logging.basicConfig(
 
 @click.command()
 @click.option("-d", "--debug", is_flag=True)
-def cli(debug: bool) -> None:
+def cli(debug: bool = False) -> None:
     if debug or env.DEBUG:
         logging.getLogger().setLevel(logging.DEBUG)
         env.log_vars()

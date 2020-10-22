@@ -8,6 +8,9 @@ from typing import Any, Callable, List, Set, Optional
 log = logging.getLogger(__name__)
 
 
+################################################################################
+# Constants
+################################################################################
 _VARS = []
 START_LISTENING = "AUTOSCANON"
 STOP_LISTENING = "AUTOSCANOFF"
@@ -15,6 +18,9 @@ START_LISTENING_NOTIFICATION = "==Auto Scanning Activated=="
 STOP_LISTENING_NOTIFICATION = "==Auto Scanning Deactivated=="
 
 
+################################################################################
+# Classes
+################################################################################
 class _State:
     """Class for holding global state across threads/tasks"""
 
@@ -54,6 +60,10 @@ def _env(
     fail: bool = True,
     default: Any = None,
 ) -> Any:
+    """
+    Function used to read container/OS environmnet variables in and return the
+    values to be stored in global Python variables.
+    """
     value = os.environ.get(key)
     if value is None:
         if fail and default is None:
@@ -64,10 +74,21 @@ def _env(
     return value
 
 
+def log_vars() -> None:
+    """
+    Function to allow simple logging of environment variables in any part of the
+    application.
+    """
+    for key, value in _VARS:
+        log.debug(f"{key}={value}")
+
+
 ################################################################################
 # Casting functions
 ################################################################################
-# Functions to ensure the correct types are always returned by the _env function
+# These functions simply cast all incoming environment variables, which are
+# only able to be returned as strings, into the desired type
+################################################################################
 def _cast_to_bool(to_cast: str) -> bool:
     return to_cast.lower() == "true"
 
@@ -95,15 +116,9 @@ def _cast_to_path(to_cast: str) -> Path:
     return Path(to_cast)
 
 
-def log_vars() -> None:
-    for key, value in _VARS:
-        log.debug(f"{key}={value}")
-
-
 ################################################################################
-# Environment Variable declarations
+# Environment Variables
 ################################################################################
-# Declares all environment variables for application execution
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
 BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
@@ -126,6 +141,8 @@ AUTOSCAN_STATE_FILE_PATH = _env(
     default="signal_scanner_bot/.autoscanner-state-file",
 )
 
+################################################################################
+# Environment State Variables
+################################################################################
 SIGNAL_LOCK = Lock()
-
 STATE = _State(AUTOSCAN_STATE_FILE_PATH)
