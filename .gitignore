@@ -133,3 +133,5 @@ dmypy.json
 
 # Auto scanner file
 .autoscanner-state-file
+
+signal_scanner_bot/.diff-autoscan-state-file
