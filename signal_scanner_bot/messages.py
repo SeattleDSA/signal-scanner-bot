@@ -8,20 +8,21 @@ from tweepy import Status, API
 from . import env
 from . import signal
 from . import twitter
-from .filters import SIGNAL_FILTERS, message_timestamp, TWITTER_FILTERS
+from .filters import SIGNAL_FILTERS, TWITTER_FILTERS
 
 log = logging.getLogger(__name__)
-
-
-D = TypeVar("D")
 
 
 ################################################################################
 # Constants
 ################################################################################
 NON_ALPHA_NUMERIC = re.compile(r"[\W]+")
+D = TypeVar("D")
 
 
+################################################################################
+# Private Functions
+################################################################################
 def _pass_filters(data: D, filters: List[Callable[[D], bool]]) -> bool:
     """
     Given a certain data object, run all of the filters against that object.
@@ -61,14 +62,16 @@ def _strip_tweet_hashtags(status_text: str) -> str:
     return text
 
 
-def build_tweet_url(status: Status) -> str:
+def _build_tweet_url(status: Status) -> str:
     """
-    Returns a link to the tweet provided
+    Returns a link to the tweet provided. Surprisingly the Twitter API
+    doesn't have a self link as a property of a tweet, so we have to
+    build it ourselves.
     """
     return f"https://twitter.com/i/status/{status.id}"
 
 
-def get_tweet_text(status: Status) -> str:
+def _get_tweet_text(status: Status) -> str:
     """
     Extract full text whether tweet is extended or not
     """
@@ -78,20 +81,20 @@ def get_tweet_text(status: Status) -> str:
         return _strip_tweet_hashtags(status.text)
 
 
-def format_tweet_text(status: Status) -> str:
+def _format_tweet_text(status: Status) -> str:
     """
     Extract text from a tweet and build a signal message
     """
-    return f"{get_tweet_text(status)}\n{build_tweet_url(status)}"
+    return f"{_get_tweet_text(status)}\n{_build_tweet_url(status)}"
 
 
-def format_retweet_text(status: Status) -> str:
+def _format_retweet_text(status: Status) -> str:
     """
     Extract text from retweet and build signal message
     """
     # Pull text out of the main tweet and sub tweet
-    top_level_tweet_text = get_tweet_text(status)
-    quoted_tweet_text = get_tweet_text(status.quoted_status)
+    top_level_tweet_text = _get_tweet_text(status)
+    quoted_tweet_text = _get_tweet_text(status.quoted_status)
 
     # Build Signal message
     if top_level_tweet_text:
@@ -99,17 +102,20 @@ def format_retweet_text(status: Status) -> str:
             f"""\
         [QUOTE TWEET]:
         {top_level_tweet_text}
-        {build_tweet_url(status)}
+        {_build_tweet_url(status)}
 
         [ORIGINAL TWEET]:
         {quoted_tweet_text}
-        {build_tweet_url(status.quoted_status)}
+        {_build_tweet_url(status.quoted_status)}
         """
         )
     else:
-        return format_tweet_text(status.quoted_status)
+        return _format_tweet_text(status.quoted_status)
 
 
+################################################################################
+# Public Functions
+################################################################################
 def process_signal_message(blob: Dict, api: API) -> None:
     """
     Process a signal message.
@@ -131,7 +137,7 @@ def process_signal_message(blob: Dict, api: API) -> None:
 
     # Signal-to-twitter
     if _is_scanner_message(message):
-        timestamp = message_timestamp(data)
+        timestamp = signal.message_timestamp(data)
         log.info(f"{timestamp.isoformat()}: '{message}'")
         twitter.send_tweet(message, api)
         return
@@ -156,9 +162,9 @@ def process_twitter_message(status: Status) -> None:
         return None
 
     if hasattr(status, "quoted_status"):
-        message = format_retweet_text(status)
+        message = _format_retweet_text(status)
     else:
-        message = format_tweet_text(status)
+        message = _format_tweet_text(status)
 
     # On the off chance a message is an empty string just skip sending
     if message:

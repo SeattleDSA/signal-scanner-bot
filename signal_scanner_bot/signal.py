@@ -1,29 +1,57 @@
 import logging
 import subprocess
 import traceback
-from typing import Optional
+from datetime import datetime
+from typing import Dict
 
-from signal_scanner_bot import env
+from . import env
 
 
 log = logging.getLogger(__name__)
 
 
 ################################################################################
-# Send message
+# Private Functions
 ################################################################################
-def send_message(message: str, recipient: Optional[str]):
-    recipient = recipient or ""
+def _check_group(recipient: str) -> bool:
+    """
+    Function to check whether a supplied recipient string is in the phone number
+    or group format.
+    """
     if recipient.endswith("==") and len(recipient) == 24:
         # Heuristic: this is usually the pattern of group IDs
-        group = True
+        return True
     elif recipient.startswith("+"):
         # Heuristic: this is what phone numbers have to start with
-        group = False
+        return False
     else:
         raise ValueError(f"Supplied recipient is invalid: {recipient}")
 
+
+################################################################################
+# Public Functions
+################################################################################
+def message_timestamp(data: Dict) -> datetime:
+    """
+    Function to extract the timestamp from a Signal message and convert it to
+    a proper datetime object.
+    """
+    try:
+        timestamp_milliseconds = data["timestamp"]
+    except KeyError as err:
+        raise KeyError(f"Timestamp field is not present in data: {data}") from err
+
+    dt = datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
+    return dt
+
+
+def send_message(message: str, recipient: str):
+    """
+    High level function to send a Signal message to a specified recipient.
+    """
+    group = _check_group(recipient)
     recipient_args = ["-g", recipient] if group else [recipient]
+
     log.debug("Acquiring signal lock to send")
     with env.SIGNAL_LOCK:
         log.debug("Send lock acquired")
@@ -46,7 +74,7 @@ def send_message(message: str, recipient: Optional[str]):
 
 
 ################################################################################
-# Panic
+# Panic?!?!?!?!
 ################################################################################
 def panic(err: Exception) -> None:
     # We don't really care if this succeeds, particularly if there's an issue

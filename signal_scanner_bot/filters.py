@@ -4,22 +4,7 @@ from typing import Dict, List, Callable
 from tweepy import Status
 
 from . import env
-
-
-################################################################################
-# Utilities
-################################################################################
-def message_timestamp(data: Dict) -> datetime:
-
-    # Get timestamp information from incoming Signal message
-    try:
-        timestamp_milliseconds = data["timestamp"]
-    except KeyError as err:
-        raise KeyError(f"Timestamp field is not present in data: {data}") from err
-
-    # Create datetime object and convert to the specified timezone, then return
-    dt = datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
-    return dt
+from .signal import message_timestamp
 
 
 ################################################################################
