@@ -4,7 +4,11 @@ import logging
 import click
 
 from signal_scanner_bot import env
-from signal_scanner_bot.transport import signal_to_twitter, twitter_to_signal
+from signal_scanner_bot.transport import (
+    signal_to_twitter,
+    twitter_to_queue,
+    queue_to_signal,
+)
 
 
 log = logging.getLogger(__name__)
@@ -33,7 +37,12 @@ def cli(debug: bool = False) -> None:
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(
-        asyncio.gather(signal_to_twitter(), twitter_to_signal(), return_exceptions=True)
+        asyncio.gather(
+            signal_to_twitter(),
+            queue_to_signal(),
+            twitter_to_queue(),
+            return_exceptions=True,
+        )
     )
 
 

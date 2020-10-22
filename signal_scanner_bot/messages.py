@@ -168,4 +168,4 @@ def process_twitter_message(status: Status) -> None:
 
     # On the off chance a message is an empty string just skip sending
     if message:
-        signal.send_message(message, env.LISTEN_CONTACT)
+        env.TWITTER_TO_SIGNAL_QUEUE.put(message, block=False)

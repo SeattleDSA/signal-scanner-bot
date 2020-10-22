@@ -1,5 +1,6 @@
 import logging
 import os
+from queue import Queue
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, List, Set, Optional
@@ -146,3 +147,4 @@ AUTOSCAN_STATE_FILE_PATH = _env(
 ################################################################################
 SIGNAL_LOCK = Lock()
 STATE = _State(AUTOSCAN_STATE_FILE_PATH)
+TWITTER_TO_SIGNAL_QUEUE: Queue = Queue(maxsize=10000)  # shooting from the hip here...

@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import subprocess
+import queue
 import concurrent.futures
 
 import tweepy
@@ -16,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 ################################################################################
-# Stream listener
+# Stream Listener
 ################################################################################
 class Listener(tweepy.StreamListener):
     """
@@ -31,28 +32,28 @@ class Listener(tweepy.StreamListener):
 
 
 ################################################################################
-# Twitter-to-signal
+# Twitter-to-Queue
 ################################################################################
-def _twitter_to_signal():
+def _twitter_to_queue():
     """
     Top level function for running the twitter-to-signal loop.
     """
     api = twitter.get_api()
     stream = tweepy.Stream(auth=api.auth, listener=Listener())
-    log.info("Stream initialized, starting to follow")
+    log.info("Twitter stream initialized, starting to follow")
     stream.filter(track=env.RECEIVE_HASHTAGS, stall_warnings=True)
 
 
-async def twitter_to_signal():
+async def twitter_to_queue():
     """
     Asynchronous interface for the twitter-to-signal loop.
     """
     loop = asyncio.get_event_loop()
     with concurrent.futures.ThreadPoolExecutor() as pool:
         try:
-            await loop.run_in_executor(pool, _twitter_to_signal)
+            await loop.run_in_executor(pool, _twitter_to_queue)
         except Exception as err:
-            log.error("Exception occurred, halting process")
+            log.error("Exception occurred in the Twitter to Queue pipeline, halting process")
             log.exception(err)
             signal.panic(err)
             env.STATE.STOP_REQUESTED = True
@@ -60,7 +61,44 @@ async def twitter_to_signal():
 
 
 ################################################################################
-# Signal-to-twitter
+# Queue-to-Signal
+################################################################################
+def _queue_to_signal():
+    """
+    Top level function for running the queue-to-signal loop. Flushes the entire
+    queue which might take a while we'll have to see.
+    """
+    log.debug("Trying to empty Twitter to Signal queue.")
+    while not env.TWITTER_TO_SIGNAL_QUEUE.empty():
+        try:
+            log.debug("Emptying Twitter to Signal queue.")
+            message = env.TWITTER_TO_SIGNAL_QUEUE.get_nowait()
+            signal.send_message(message, env.LISTEN_CONTACT)
+            env.TWITTER_TO_SIGNAL_QUEUE.task_done()
+        except queue.Empty():
+            log.debug("Queue is empty breaking out of aync loop.")
+
+
+async def queue_to_signal():
+    """
+    Asynchronous interface for queue-to-signal loop.
+    """
+    loop = asyncio.get_event_loop()
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        try:
+            while True:
+                await loop.run_in_executor(pool, _queue_to_signal)
+                await asyncio.sleep(5)
+        except Exception as err:
+            log.error("Exception occurred, halting queue to signal process")
+            log.exception(err)
+            signal.panic(err)
+            env.STATE.STOP_REQUESTED = True
+            raise
+
+
+################################################################################
+# Signal-to-Twitter
 ################################################################################
 async def signal_to_twitter():
     """
@@ -69,9 +107,9 @@ async def signal_to_twitter():
     api = twitter.get_api()
     try:
         while not env.STATE.STOP_REQUESTED:
-            log.debug("Acquiring signal lock to listen")
+            log.debug("Acquiring lock to listen for Signal messages")
             with env.SIGNAL_LOCK:
-                log.debug("Listen lock acquired")
+                log.debug("Listen lock for Signal messages acquired")
                 proc = await asyncio.create_subprocess_shell(
                     f"signal-cli -u {env.BOT_NUMBER} receive --json -t {env.SIGNAL_TIMEOUT}",
                     stdout=subprocess.PIPE,
@@ -99,5 +137,7 @@ async def signal_to_twitter():
         log.info("Killing signal-cli")
         try:
             proc.kill()
+            log.info("signal-cli process killed")
         except ProcessLookupError:
+            log.warning("Failed to kill process, moving on.")
             pass
