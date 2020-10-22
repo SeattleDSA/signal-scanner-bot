@@ -52,6 +52,7 @@ async def twitter_to_queue():
     with concurrent.futures.ThreadPoolExecutor() as pool:
         try:
             await loop.run_in_executor(pool, _twitter_to_queue)
+            await asyncio.sleep(5)
         except Exception as err:
             log.error("Exception occurred in the Twitter to Queue pipeline, halting process")
             log.exception(err)
