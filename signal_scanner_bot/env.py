@@ -1,6 +1,6 @@
 import logging
 import os
-from queue import Queue
+from asyncio import Queue
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, List, Set, Optional

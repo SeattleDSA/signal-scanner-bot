@@ -2,7 +2,6 @@
 import asyncio
 import logging
 import subprocess
-import queue
 import concurrent.futures
 
 import tweepy
@@ -52,7 +51,6 @@ async def twitter_to_queue():
     with concurrent.futures.ThreadPoolExecutor() as pool:
         try:
             await loop.run_in_executor(pool, _twitter_to_queue)
-            await asyncio.sleep(5)
         except Exception as err:
             log.error(
                 "Exception occurred in the Twitter to Queue pipeline, halting process"
@@ -78,7 +76,7 @@ def _queue_to_signal():
             message = env.TWITTER_TO_SIGNAL_QUEUE.get_nowait()
             signal.send_message(message, env.LISTEN_CONTACT)
             env.TWITTER_TO_SIGNAL_QUEUE.task_done()
-        except queue.Empty():
+        except asyncio.QueueEmpty:
             log.debug("Queue is empty breaking out of aync loop.")
 
 
