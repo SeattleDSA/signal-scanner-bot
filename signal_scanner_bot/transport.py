@@ -48,15 +48,17 @@ async def twitter_to_queue():
     """
     Asynchronous interface for the twitter-to-signal loop.
     """
-    urllib3_error_message = "There was a Twitter API connection error, restarting Twitter API stream"
+    urllib3_error_message = (
+        "There was a Twitter API connection error, restarting Twitter API stream"
+    )
     loop = asyncio.get_event_loop()
     with concurrent.futures.ThreadPoolExecutor() as pool:
         try:
             await loop.run_in_executor(pool, _twitter_to_queue)
         except urllib3.exceptions.ProtocolError as err:
-            log.warning(urllib3_error_message + ": Protocol Error")
+            log.warning(urllib3_error_message + ": Protocol Error\n" + str(err))
         except urllib3.exceptions.ReadTimeoutError as err:
-            log.warning(urllib3_error_message + ": Read Timeout Error")
+            log.warning(urllib3_error_message + ": Read Timeout Error\n" + str(err))
         except Exception as err:
             log.error(
                 "Exception occurred in the Twitter to Queue pipeline, halting process"

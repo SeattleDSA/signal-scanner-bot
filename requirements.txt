@@ -1,3 +1,5 @@
 Click==7.1.2
 tweepy==3.9.0
 ujson==3.1.0
+urllib3==1.25.11
+pre-commit==2.8.2
