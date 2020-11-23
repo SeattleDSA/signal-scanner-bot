@@ -6,6 +6,9 @@ from threading import Lock
 from typing import Any, Callable, List, Set, Optional
 
 
+import peony
+
+
 log = logging.getLogger(__name__)
 
 
@@ -17,6 +20,38 @@ START_LISTENING = "AUTOSCANON"
 STOP_LISTENING = "AUTOSCANOFF"
 START_LISTENING_NOTIFICATION = "==Auto Scanning Activated=="
 STOP_LISTENING_NOTIFICATION = "==Auto Scanning Deactivated=="
+
+
+################################################################################
+# Not sure what to call this section
+################################################################################
+def _env(
+    key: str,
+    convert: Callable[[str], Any],
+    fail: bool = True,
+    default: Any = None,
+) -> Any:
+    """
+    Function used to read container/OS environmnet variables in and return the
+    values to be stored in global Python variables.
+    """
+    value = os.environ.get(key)
+    if value is None:
+        if fail and default is None:
+            raise KeyError(f"Key '{key}' is not present in environment!")
+        value = default
+    value = convert(str(value))
+    _VARS.append((key, value))
+    return value
+
+
+def log_vars() -> None:
+    """
+    Function to allow simple logging of environment variables in any part of the
+    application.
+    """
+    for key, value in _VARS:
+        log.debug(f"{key}={value}")
 
 
 ################################################################################
@@ -53,35 +88,6 @@ class _State:
             if self.LISTENING
             else STOP_LISTENING_NOTIFICATION
         )
-
-
-def _env(
-    key: str,
-    convert: Callable[[str], Any],
-    fail: bool = True,
-    default: Any = None,
-) -> Any:
-    """
-    Function used to read container/OS environmnet variables in and return the
-    values to be stored in global Python variables.
-    """
-    value = os.environ.get(key)
-    if value is None:
-        if fail and default is None:
-            raise KeyError(f"Key '{key}' is not present in environment!")
-        value = default
-    value = convert(str(value))
-    _VARS.append((key, value))
-    return value
-
-
-def log_vars() -> None:
-    """
-    Function to allow simple logging of environment variables in any part of the
-    application.
-    """
-    for key, value in _VARS:
-        log.debug(f"{key}={value}")
 
 
 ################################################################################
@@ -148,3 +154,14 @@ AUTOSCAN_STATE_FILE_PATH = _env(
 SIGNAL_LOCK = Lock()
 STATE = _State(AUTOSCAN_STATE_FILE_PATH)
 TWITTER_TO_SIGNAL_QUEUE: Queue = Queue(maxsize=10000)  # shooting from the hip here...
+
+################################################################################
+# Peony Twitter Event Stream client
+################################################################################
+API_KEYS = {
+    "consumer_key": TWITTER_API_KEY,
+    "consumer_secret": TWITTER_API_SECRET,
+    "access_token": TWITTER_ACCESS_TOKEN,
+    "access_token_secret": TWITTER_TOKEN_SECRET,
+}
+CLIENT = peony.PeonyClient(**API_KEYS)

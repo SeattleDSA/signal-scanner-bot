@@ -3,7 +3,7 @@ import re
 from textwrap import dedent
 from typing import Dict, List, Callable, TypeVar
 
-from tweepy import Status, API
+import peony
 
 from . import env
 from . import signal
@@ -62,39 +62,39 @@ def _strip_tweet_hashtags(status_text: str) -> str:
     return text
 
 
-def _build_tweet_url(status: Status) -> str:
+def _build_tweet_url(status: Dict) -> str:
     """
     Returns a link to the tweet provided. Surprisingly the Twitter API
     doesn't have a self link as a property of a tweet, so we have to
     build it ourselves.
     """
-    return f"https://twitter.com/i/status/{status.id}"
+    return f"https://twitter.com/i/status/{status['id']}"
 
 
-def _get_tweet_text(status: Status) -> str:
+def _get_tweet_text(status: Dict) -> str:
     """
     Extract full text whether tweet is extended or not
     """
     if hasattr(status, "extended_tweet"):
-        return _strip_tweet_hashtags(status.extended_tweet["full_text"])
+        return _strip_tweet_hashtags(status["extended_tweet"]["full_text"])
     else:
-        return _strip_tweet_hashtags(status.text)
+        return _strip_tweet_hashtags(status["text"])
 
 
-def _format_tweet_text(status: Status) -> str:
+def _format_tweet_text(status: Dict) -> str:
     """
     Extract text from a tweet and build a signal message
     """
     return f"{_get_tweet_text(status)}\n{_build_tweet_url(status)}"
 
 
-def _format_retweet_text(status: Status) -> str:
+def _format_retweet_text(status: Dict) -> str:
     """
     Extract text from retweet and build signal message
     """
     # Pull text out of the main tweet and sub tweet
     top_level_tweet_text = _get_tweet_text(status)
-    quoted_tweet_text = _get_tweet_text(status.quoted_status)
+    quoted_tweet_text = _get_tweet_text(status["quoted_status"])
 
     # Build Signal message
     if top_level_tweet_text:
@@ -106,17 +106,17 @@ def _format_retweet_text(status: Status) -> str:
 
         [ORIGINAL TWEET]:
         {quoted_tweet_text}
-        {_build_tweet_url(status.quoted_status)}
+        {_build_tweet_url(status["quoted_status"])}
         """
         )
     else:
-        return _format_tweet_text(status.quoted_status)
+        return _format_tweet_text(status["quoted_status"])
 
 
 ################################################################################
 # Public Functions
 ################################################################################
-def process_signal_message(blob: Dict, api: API) -> None:
+def process_signal_message(blob: Dict, client: peony.PeonyClient) -> None:
     """
     Process a signal message.
 
@@ -139,7 +139,7 @@ def process_signal_message(blob: Dict, api: API) -> None:
     if _is_scanner_message(message):
         timestamp = signal.message_timestamp(data)
         log.info(f"{timestamp.isoformat()}: '{message}'")
-        twitter.send_tweet(message, api)
+        twitter.send_tweet(message, client)
         return
 
     # Check if twitter-to-signal should be on/off
@@ -150,14 +150,14 @@ def process_signal_message(blob: Dict, api: API) -> None:
         signal.send_message(notice, env.LISTEN_CONTACT)
 
 
-def process_twitter_message(status: Status) -> None:
+def process_twitter_message(status: Dict) -> None:
     """
     Process a twitter status.
 
     If the status passes initial filters, strip the status text of any
     hashtags and send it as a signal message to the listening group.
     """
-    log.info(f"STATUS RECEIVED ({status.id}) {status.text}")
+    log.info(f"STATUS RECEIVED ({status['id']}) {status['text']}")
     if not _pass_filters(status, TWITTER_FILTERS):
         return None
 

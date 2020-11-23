@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Dict, List, Callable
 
-from tweepy import Status
-
 from . import env
 from .signal import message_timestamp
 
@@ -46,18 +44,12 @@ SIGNAL_FILTERS: List[Callable[[Dict], bool]] = [
 ################################################################################
 # Twitter Filters
 ################################################################################
-def _f_not_trusted_tweeter(status: Status) -> bool:
-    # Status wasn't sent by a trusted tweeter
-    return status.author.screen_name not in env.TRUSTED_TWEETERS
-
-
-def _f_retweet_text(status: Status) -> bool:
+def _f_retweet_text(status: Dict) -> bool:
     # Status text starts with "RT @"
     # Twitter uses that to identify a retweet
-    return status.text.startswith("RT @")
+    return status["text"].startswith("RT @")
 
 
-TWITTER_FILTERS: List[Callable[[Status], bool]] = [
-    _f_not_trusted_tweeter,
+TWITTER_FILTERS: List[Callable[[Dict], bool]] = [
     _f_retweet_text,
 ]
