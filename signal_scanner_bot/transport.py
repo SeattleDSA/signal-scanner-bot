@@ -5,7 +5,7 @@ import logging
 import subprocess
 import concurrent.futures
 
-import peony
+from peony import events
 import ujson
 
 from . import env
@@ -25,84 +25,18 @@ def _filter_hashtags(data, filter_hashtag_list):
     return False
 
 
-class Stream(peony.PeonyClient):
-    """
-    Base class for the Event Stream
-    Nothing is changed here as we are not editing the base class
-    """
-
-    pass
-
-
-@Stream.event_stream
-class UserStream(peony.EventStream):
-    async def stream_request(self):
-        """
-        Basic stream set up
-        """
-        await self.api.client.stream.statuses.filter.post(
-            follow=",".join(env.TRUSTED_TWEETERS)
-        )
-
-    @peony.events.on_connected.handler
-    def connection(self):
-        """
-        Action to perform on connection
-        """
-        print("Connected to Twitter Stream API")
-
-    @peony.events.on_retweeted_status.handler
-    async def on_retweet(self, data):
-        """
-        Filter tweets from followed users on specified hashtags
-        Execute something (send to Signal or whatever)
-        """
-        pass
-
-    @peony.events.on_tweet.handler
-    async def on_tweet(self, data):
-        """
-        Filter tweets from followed users on specified hashtags
-        Execute something (send to Signal or whatever)
-        """
-        print("Got a tweet\n\n\n\n\n")
-        if _filter_hashtags(data, env.RECEIVE_HASHTAGS):
-            pprint.pprint(data)
-
-    @peony.events.reconnecting_in.handler
-    async def reconnecting(self, data):
-        """
-        Action to perform on reconnect
-        """
-        print("reconnecting in %ss" % data.reconnecting_in)
-
-    @peony.events.on_restart.handler
-    async def restart_notice(self):
-        """
-        Action to perform on reconnect
-        """
-        print("*Stream restarted*\n" + "-" * 10)
-        await self.api.client.stream.statuses.filter.post(
-            follow=",".join(env.TRUSTED_TWEETERS)
-        )
-
-    @peony.events.on_dm.handler
-    async def direct_message(self, data):
-        pass
-
-    @peony.events.friends.handler
-    async def pass_friends(self):
-        pass
-
-    @peony.events.default.handler
-    async def default(self, data):
-        pass
-
-
 async def twitter_to_queue():
     log.info("Starting Twitter Event Stream")
-    stream = peony.PeonyClient(**env.API_KEYS)
-    stream.run()
+    stream_obj = env.CLIENT.api.client.stream.statuses.filter.post(
+        follow=",".join(env.TRUSTED_TWEETERS)
+    )
+    async with stream_obj as stream:
+        async for data in stream:
+            if events.on_connect(data):
+                print("Connected to the stream")
+            elif events.on_tweet(data):
+                if _filter_hashtags(data, env.RECEIVE_HASHTAGS):
+                    pprint.pprint(data)
 
 
 ################################################################################
