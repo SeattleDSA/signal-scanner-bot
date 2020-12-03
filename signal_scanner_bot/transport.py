@@ -35,9 +35,8 @@ async def twitter_to_queue():
             if events.on_connect(data):
                 log.info("Connected to the stream")
             elif events.on_tweet(data):
-                log.debug(f"Received twitter data: {data.get('text', '')}")
                 if _filter_hashtags(data, env.RECEIVE_HASHTAGS):
-                    log.info(pprint.pformat(data))
+                    await messages.process_twitter_message(data)
 
 
 ################################################################################

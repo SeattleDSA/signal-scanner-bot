@@ -150,7 +150,7 @@ async def process_signal_message(blob: Dict, client: peony.PeonyClient) -> None:
         signal.send_message(notice, env.LISTEN_CONTACT)
 
 
-def process_twitter_message(status: Dict) -> None:
+async def process_twitter_message(status: Dict) -> None:
     """
     Process a twitter status.
 
@@ -168,4 +168,4 @@ def process_twitter_message(status: Dict) -> None:
 
     # On the off chance a message is an empty string just skip sending
     if message:
-        env.TWITTER_TO_SIGNAL_QUEUE.put_nowait(message)
+        await env.TWITTER_TO_SIGNAL_QUEUE.put(message)
