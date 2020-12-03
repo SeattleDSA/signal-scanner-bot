@@ -27,16 +27,17 @@ def _filter_hashtags(data, filter_hashtag_list):
 
 async def twitter_to_queue():
     log.info("Starting Twitter Event Stream")
-    stream_obj = env.CLIENT.api.client.stream.statuses.filter.post(
+    stream_obj = env.CLIENT.stream.statuses.filter.post(
         follow=",".join(env.TRUSTED_TWEETERS)
     )
     async with stream_obj as stream:
         async for data in stream:
             if events.on_connect(data):
-                print("Connected to the stream")
+                log.info("Connected to the stream")
             elif events.on_tweet(data):
+                log.debug(f"Received twitter data: {data.get('text', '')}")
                 if _filter_hashtags(data, env.RECEIVE_HASHTAGS):
-                    pprint.pprint(data)
+                    log.info(pprint.pformat(data))
 
 
 ################################################################################
