@@ -116,7 +116,7 @@ def _format_retweet_text(status: Dict) -> str:
 ################################################################################
 # Public Functions
 ################################################################################
-def process_signal_message(blob: Dict, client: peony.PeonyClient) -> None:
+async def process_signal_message(blob: Dict, client: peony.PeonyClient) -> None:
     """
     Process a signal message.
 
@@ -139,7 +139,7 @@ def process_signal_message(blob: Dict, client: peony.PeonyClient) -> None:
     if _is_scanner_message(message):
         timestamp = signal.message_timestamp(data)
         log.info(f"{timestamp.isoformat()}: '{message}'")
-        twitter.send_tweet(message, client)
+        await twitter.send_tweet(message, client)
         return
 
     # Check if twitter-to-signal should be on/off

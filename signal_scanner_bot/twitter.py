@@ -125,7 +125,7 @@ async def _send_tweet_thread(tweet_list: List[str], client: peony.PeonyClient) -
 ################################################################################
 # Public functions
 ################################################################################
-def send_tweet(tweet: str, client: peony.PeonyClient) -> None:
+async def send_tweet(tweet: str, client: peony.PeonyClient) -> None:
     """
     High level function to build and send tweets from incoming message streams
     """
@@ -143,7 +143,7 @@ def send_tweet(tweet: str, client: peony.PeonyClient) -> None:
     # Signal group if there is an error.
     try:
         formatted_tweet_list = _format_tweet_message(tweet_list, hashtags)
-        _send_tweet_thread(formatted_tweet_list, client)
+        await _send_tweet_thread(formatted_tweet_list, client)
     except Exception as err:
         log.warning(
             f"There was an unexpected error returned from the Twitter API:\n{err}"

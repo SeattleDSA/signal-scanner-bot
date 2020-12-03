@@ -97,7 +97,7 @@ async def signal_to_twitter():
                 line = line.decode("utf-8").rstrip()
                 blob = ujson.loads(line)
                 try:
-                    messages.process_signal_message(blob, env.CLIENT)
+                    await messages.process_signal_message(blob, env.CLIENT)
                 except Exception:
                     log.error(f"Malformed message: {blob}")
                     raise
