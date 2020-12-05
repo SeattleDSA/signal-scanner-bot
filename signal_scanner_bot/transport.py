@@ -1,5 +1,4 @@
 """Main module."""
-import pprint
 import asyncio
 import logging
 import subprocess

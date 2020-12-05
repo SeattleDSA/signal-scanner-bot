@@ -23,7 +23,7 @@ STOP_LISTENING_NOTIFICATION = "==Auto Scanning Deactivated=="
 
 
 ################################################################################
-# Not sure what to call this section
+# Other Functions
 ################################################################################
 def _env(
     key: str,
@@ -50,6 +50,7 @@ def log_vars() -> None:
     Function to allow simple logging of environment variables in any part of the
     application.
     """
+    log.debug("Input environment variables")
     for key, value in _VARS:
         log.debug(f"{key}={value}")
 
@@ -123,6 +124,25 @@ def _cast_to_path(to_cast: str) -> Path:
     return Path(to_cast)
 
 
+def _format_hashtags(to_cast: str) -> List[str]:
+    hashtags = _cast_to_list(to_cast)
+    output_hashtags = list()
+    hashstrip = False
+    for hashtag in hashtags:
+        if hashtag[0] == "#":
+            hashtag = hashtag[1:]
+            hashstrip = True
+        output_hashtags.append(hashtag)
+
+    if hashstrip:
+        log.warning(
+            "WARNING: Receive hashtags should no longer contain a # at the start,"
+            " only the contents of the hashtag itself is needed."
+        )
+
+    return output_hashtags
+
+
 ################################################################################
 # Environment Variables
 ################################################################################
@@ -138,7 +158,7 @@ TWITTER_ACCESS_TOKEN = _env("TWITTER_ACCESS_TOKEN", convert=_cast_to_string)
 TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET", convert=_cast_to_string)
 TRUSTED_TWEETERS = _env("TRUSTED_TWEETERS", convert=_cast_to_set, default={})
 SEND_HASHTAGS = _env("SEND_HASHTAGS", convert=_cast_to_list, default=[])
-RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_cast_to_list, default=[])
+RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_format_hashtags, default=[])
 SIGNAL_MESSAGE_HEADERS = _env(
     "SIGNAL_MESSAGE_HEADERS", convert=_cast_to_set, default={}
 )
@@ -147,6 +167,14 @@ AUTOSCAN_STATE_FILE_PATH = _env(
     convert=_cast_to_path,
     default="signal_scanner_bot/.autoscanner-state-file",
 )
+
+# Checking to ensure user ids are in the proper format, raise error if not.
+for tweeter in TRUSTED_TWEETERS:
+    if tweeter[0] == "@":
+        raise ValueError(
+            "TRUSTER_TWEETERS must be user IDs and not handles. Please visit http://gettwitterid.com/"
+            " to find the user ID of a user's handle."
+        )
 
 ################################################################################
 # Environment State Variables
