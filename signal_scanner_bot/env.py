@@ -126,21 +126,14 @@ def _cast_to_path(to_cast: str) -> Path:
 
 def _format_hashtags(to_cast: str) -> List[str]:
     hashtags = _cast_to_list(to_cast)
-    output_hashtags = list()
-    hashstrip = False
-    for hashtag in hashtags:
-        if hashtag[0] == "#":
-            hashtag = hashtag[1:]
-            hashstrip = True
-        output_hashtags.append(hashtag)
-
-    if hashstrip:
+    if any("#" in hashtag for hashtag in hashtags):
         log.warning(
             "WARNING: Receive hashtags should no longer contain a # at the start,"
             " only the contents of the hashtag itself is needed."
         )
 
-    return output_hashtags
+    # Remove any hashtags
+    return [hashtag.strip("#") for hashtag in hashtags]
 
 
 ################################################################################

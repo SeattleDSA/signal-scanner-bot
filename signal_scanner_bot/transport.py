@@ -2,7 +2,6 @@
 import asyncio
 import logging
 import subprocess
-import concurrent.futures
 
 from peony import events
 import ujson
@@ -41,38 +40,28 @@ async def twitter_to_queue():
 ################################################################################
 # Queue-to-Signal
 ################################################################################
-def _queue_to_signal():
+async def queue_to_signal():
     """
     Top level function for running the queue-to-signal loop. Flushes the entire
     queue which might take a while we'll have to see.
     """
-    log.debug("Trying to empty Twitter to Signal queue.")
-    while not env.TWITTER_TO_SIGNAL_QUEUE.empty():
-        try:
-            log.debug("Emptying Twitter to Signal queue.")
-            message = env.TWITTER_TO_SIGNAL_QUEUE.get_nowait()
-            signal.send_message(message, env.LISTEN_CONTACT)
-            env.TWITTER_TO_SIGNAL_QUEUE.task_done()
-        except asyncio.QueueEmpty:
-            log.debug("Queue is empty breaking out of aync loop.")
-
-
-async def queue_to_signal():
-    """
-    Asynchronous interface for queue-to-signal loop.
-    """
-    loop = asyncio.get_event_loop()
-    with concurrent.futures.ThreadPoolExecutor() as pool:
-        try:
-            while True:
-                await loop.run_in_executor(pool, _queue_to_signal)
-                await asyncio.sleep(5)
-        except Exception as err:
-            log.error("Exception occurred, halting queue to signal process")
-            log.exception(err)
-            signal.panic(err)
-            env.STATE.STOP_REQUESTED = True
-            raise
+    while True:
+        log.debug("Trying to empty Twitter to Signal queue.")
+        while not env.TWITTER_TO_SIGNAL_QUEUE.empty():
+            try:
+                log.debug("Emptying Twitter to Signal queue.")
+                message = await env.TWITTER_TO_SIGNAL_QUEUE.get()
+                signal.send_message(message, env.LISTEN_CONTACT)
+                env.TWITTER_TO_SIGNAL_QUEUE.task_done()
+            except asyncio.QueueEmpty:
+                log.debug("Queue is empty breaking out of async loop.")
+            except Exception as err:
+                log.error("Exception occurred, halting queue to signal process")
+                log.exception(err)
+                signal.panic(err)
+                env.STATE.STOP_REQUESTED = True
+                raise
+        await asyncio.sleep(1)
 
 
 ################################################################################
