@@ -102,7 +102,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+*.env
 .venv
 env/
 venv/
@@ -133,3 +133,6 @@ dmypy.json
 
 # Auto scanner file
 .autoscanner-state-file
+
+# Dumb macOS files
+.DS_Store

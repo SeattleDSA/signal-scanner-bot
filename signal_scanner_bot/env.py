@@ -1,8 +1,12 @@
 import logging
 import os
+from asyncio import Queue
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, List, Set, Optional
+
+
+import peony
 
 
 log = logging.getLogger(__name__)
@@ -16,6 +20,39 @@ START_LISTENING = "AUTOSCANON"
 STOP_LISTENING = "AUTOSCANOFF"
 START_LISTENING_NOTIFICATION = "==Auto Scanning Activated=="
 STOP_LISTENING_NOTIFICATION = "==Auto Scanning Deactivated=="
+
+
+################################################################################
+# Other Functions
+################################################################################
+def _env(
+    key: str,
+    convert: Callable[[str], Any],
+    fail: bool = True,
+    default: Any = None,
+) -> Any:
+    """
+    Function used to read container/OS environmnet variables in and return the
+    values to be stored in global Python variables.
+    """
+    value = os.environ.get(key)
+    if value is None:
+        if fail and default is None:
+            raise KeyError(f"Key '{key}' is not present in environment!")
+        value = default
+    value = convert(str(value))
+    _VARS.append((key, value))
+    return value
+
+
+def log_vars() -> None:
+    """
+    Function to allow simple logging of environment variables in any part of the
+    application.
+    """
+    log.debug("Input environment variables")
+    for key, value in _VARS:
+        log.debug(f"{key}={value}")
 
 
 ################################################################################
@@ -54,35 +91,6 @@ class _State:
         )
 
 
-def _env(
-    key: str,
-    convert: Callable[[str], Any],
-    fail: bool = True,
-    default: Any = None,
-) -> Any:
-    """
-    Function used to read container/OS environmnet variables in and return the
-    values to be stored in global Python variables.
-    """
-    value = os.environ.get(key)
-    if value is None:
-        if fail and default is None:
-            raise KeyError(f"Key '{key}' is not present in environment!")
-        value = default
-    value = convert(str(value))
-    _VARS.append((key, value))
-    return value
-
-
-def log_vars() -> None:
-    """
-    Function to allow simple logging of environment variables in any part of the
-    application.
-    """
-    for key, value in _VARS:
-        log.debug(f"{key}={value}")
-
-
 ################################################################################
 # Casting functions
 ################################################################################
@@ -116,6 +124,18 @@ def _cast_to_path(to_cast: str) -> Path:
     return Path(to_cast)
 
 
+def _format_hashtags(to_cast: str) -> List[str]:
+    hashtags = _cast_to_list(to_cast)
+    if any("#" in hashtag for hashtag in hashtags):
+        log.warning(
+            "WARNING: Receive hashtags should no longer contain a # at the start,"
+            " only the contents of the hashtag itself is needed."
+        )
+
+    # Remove any hashtags
+    return [hashtag.strip("#") for hashtag in hashtags]
+
+
 ################################################################################
 # Environment Variables
 ################################################################################
@@ -131,7 +151,7 @@ TWITTER_ACCESS_TOKEN = _env("TWITTER_ACCESS_TOKEN", convert=_cast_to_string)
 TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET", convert=_cast_to_string)
 TRUSTED_TWEETERS = _env("TRUSTED_TWEETERS", convert=_cast_to_set, default={})
 SEND_HASHTAGS = _env("SEND_HASHTAGS", convert=_cast_to_list, default=[])
-RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_cast_to_list, default=[])
+RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_format_hashtags, default=[])
 SIGNAL_MESSAGE_HEADERS = _env(
     "SIGNAL_MESSAGE_HEADERS", convert=_cast_to_set, default={}
 )
@@ -141,8 +161,28 @@ AUTOSCAN_STATE_FILE_PATH = _env(
     default="signal_scanner_bot/.autoscanner-state-file",
 )
 
+# Checking to ensure user ids are in the proper format, raise error if not.
+for tweeter in TRUSTED_TWEETERS:
+    if tweeter[0] == "@":
+        raise ValueError(
+            "TRUSTER_TWEETERS must be user IDs and not handles. Please visit http://gettwitterid.com/"
+            " to find the user ID of a user's handle."
+        )
+
 ################################################################################
 # Environment State Variables
 ################################################################################
 SIGNAL_LOCK = Lock()
 STATE = _State(AUTOSCAN_STATE_FILE_PATH)
+TWITTER_TO_SIGNAL_QUEUE: Queue = Queue(maxsize=10000)  # shooting from the hip here...
+
+################################################################################
+# Peony Twitter Event Stream client
+################################################################################
+API_KEYS = {
+    "consumer_key": TWITTER_API_KEY,
+    "consumer_secret": TWITTER_API_SECRET,
+    "access_token": TWITTER_ACCESS_TOKEN,
+    "access_token_secret": TWITTER_TOKEN_SECRET,
+}
+CLIENT = peony.PeonyClient(**API_KEYS)

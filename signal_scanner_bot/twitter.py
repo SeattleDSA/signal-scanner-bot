@@ -2,8 +2,7 @@ import logging
 from textwrap import dedent
 from typing import List
 
-import tweepy
-from tweepy import TweepError
+import peony
 
 from . import env
 from . import signal
@@ -49,6 +48,7 @@ def _create_tweet_thread(message: str, hashtags: str) -> List[str]:
 
         # When length of tweet reaches >260 chars save to list and set
         # base index for next tweet
+        # noinspection PyUnboundLocalVariable
         if len(sub_tweet) > TWEET_MAX_SIZE - TWEET_PADDING:
             last_index = index - 1
             tweet_list.append(" ".join(tweet_word_list[base_index:last_index]) + " ...")
@@ -101,7 +101,7 @@ def _format_tweet_message(tweet_list: List[str], hashtags: str) -> List[str]:
     return return_list
 
 
-def _send_tweet_thread(tweet_list: List[str], api: tweepy.API) -> None:
+async def _send_tweet_thread(tweet_list: List[str], client: peony.PeonyClient) -> None:
     """
     Function to take a list of tweet messages and send them as a twitter thread,
     or, if there is only one object in the list, a single tweet.
@@ -111,10 +111,10 @@ def _send_tweet_thread(tweet_list: List[str], api: tweepy.API) -> None:
         # If first tweet send without reply to tweet ID parameter, if part
         # of a thread send reply using ID of last tweet sent.
         if tweet_id is None:
-            status_obj = api.update_status(status=tweet)
+            status_obj = await client.api.statuses.update.post(status=tweet)
             tweet_id = status_obj.id
         else:
-            status_obj = api.update_status(
+            status_obj = await client.api.statuses.update.post(
                 status=tweet,
                 in_reply_to_status_id=tweet_id,
                 auto_populate_reply_metadata=True,
@@ -125,19 +125,7 @@ def _send_tweet_thread(tweet_list: List[str], api: tweepy.API) -> None:
 ################################################################################
 # Public functions
 ################################################################################
-def get_api():
-    """
-    Function to create and authenticate session with the Twitter API
-    """
-    auth = tweepy.OAuthHandler(env.TWITTER_API_KEY, env.TWITTER_API_SECRET)
-    auth.set_access_token(env.TWITTER_ACCESS_TOKEN, env.TWITTER_TOKEN_SECRET)
-
-    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-    api.verify_credentials()
-    return api
-
-
-def send_tweet(tweet: str, api: tweepy.API) -> None:
+async def send_tweet(tweet: str, client: peony.PeonyClient) -> None:
     """
     High level function to build and send tweets from incoming message streams
     """
@@ -155,8 +143,8 @@ def send_tweet(tweet: str, api: tweepy.API) -> None:
     # Signal group if there is an error.
     try:
         formatted_tweet_list = _format_tweet_message(tweet_list, hashtags)
-        _send_tweet_thread(formatted_tweet_list, api)
-    except TweepError as err:
+        await _send_tweet_thread(formatted_tweet_list, client)
+    except Exception as err:
         log.warning(
             f"There was an unexpected error returned from the Twitter API:\n{err}"
         )
