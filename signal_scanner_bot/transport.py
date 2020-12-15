@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 ################################################################################
 def _filter_hashtags(data, filter_hashtag_list):
     for input_hashtag in data["entities"]["hashtags"]:
-        if input_hashtag["text"] in filter_hashtag_list:
+        if input_hashtag["text"].lower() in filter_hashtag_list:
             return True
     return False
 
