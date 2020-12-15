@@ -29,6 +29,10 @@ async def twitter_to_queue():
         follow=",".join(env.TRUSTED_TWEETERS)
     )
     async with stream_obj as stream:
+        # If we aren't supposed to be listening return nothing.
+        if not env.STATE.LISTENING:
+            return
+
         async for data in stream:
             if events.on_connect(data):
                 log.info("Connected to the stream")
