@@ -71,18 +71,11 @@ def _build_tweet_url(status: Dict) -> str:
     return f"https://twitter.com/i/status/{status['id']}"
 
 
-def _get_tweet_text(status: Dict) -> str:
-    """
-    Extract full text whether tweet is extended or not
-    """
-    return _strip_tweet_hashtags(status["text"])
-
-
 def _format_tweet_text(status: Dict) -> str:
     """
     Extract text from a tweet and build a signal message
     """
-    return f"{_get_tweet_text(status)}\n{_build_tweet_url(status)}"
+    return f"{_strip_tweet_hashtags(status['text'])}\n{_build_tweet_url(status)}"
 
 
 def _format_retweet_text(status: Dict) -> str:
@@ -90,8 +83,8 @@ def _format_retweet_text(status: Dict) -> str:
     Extract text from retweet and build signal message
     """
     # Pull text out of the main tweet and sub tweet
-    top_level_tweet_text = _get_tweet_text(status)
-    quoted_tweet_text = _get_tweet_text(status["quoted_status"])
+    top_level_tweet_text = _strip_tweet_hashtags(status["text"])
+    quoted_tweet_text = _strip_tweet_hashtags(status["quoted_status"])
 
     # Build Signal message
     if top_level_tweet_text:
