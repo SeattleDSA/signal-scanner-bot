@@ -75,10 +75,7 @@ def _get_tweet_text(status: Dict) -> str:
     """
     Extract full text whether tweet is extended or not
     """
-    if hasattr(status, "extended_tweet"):
-        return _strip_tweet_hashtags(status["extended_tweet"]["full_text"])
-    else:
-        return _strip_tweet_hashtags(status["text"])
+    return _strip_tweet_hashtags(status["text"])
 
 
 def _format_tweet_text(status: Dict) -> str:
