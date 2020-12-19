@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 ################################################################################
 def _filter_hashtags(data, filter_hashtag_list):
     for input_hashtag in data["entities"]["hashtags"]:
-        if input_hashtag["text"] in filter_hashtag_list:
+        if input_hashtag["text"].lower() in filter_hashtag_list:
             return True
     return False
 
@@ -32,7 +32,7 @@ async def twitter_to_queue():
         async for data in stream:
             if events.on_connect(data):
                 log.info("Connected to the stream")
-            elif events.on_tweet(data):
+            elif events.on_tweet(data) and env.STATE.LISTENING:
                 if _filter_hashtags(data, env.RECEIVE_HASHTAGS):
                     await messages.process_twitter_message(data)
 
