@@ -18,7 +18,7 @@ def _check_group(recipient: str) -> bool:
     Function to check whether a supplied recipient string is in the phone number
     or group format.
     """
-    if recipient.endswith("==") and len(recipient) == 24:
+    if recipient.endswith("=") and len(recipient) in {24, 44}:
         # Heuristic: this is usually the pattern of group IDs
         return True
     elif recipient.startswith("+"):
