@@ -136,3 +136,6 @@ dmypy.json
 
 # Dumb macOS files
 .DS_Store
+
+# Vim swap files
+*.swp
