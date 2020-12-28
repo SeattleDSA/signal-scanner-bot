@@ -6,7 +6,6 @@ from typing import Dict
 
 from . import env
 
-
 log = logging.getLogger(__name__)
 
 
@@ -43,6 +42,45 @@ def message_timestamp(data: Dict) -> datetime:
 
     dt = datetime.fromtimestamp(timestamp_milliseconds / 1000.0)
     return dt
+
+
+def list_identities() -> str:
+    """
+        Function that calls the signal-cli `listIdentities` command and returns the entire result as a string
+    """
+    with env.SIGNAL_LOCK:
+        proc = subprocess.run(
+            [
+                "signal-cli",
+                "-u",
+                str(env.BOT_NUMBER),
+                "listIdentities"
+            ],
+            capture_output=True,
+        )
+    if proc.stdout:
+        return proc.stdout.decode('utf-8')
+    if proc.stderr:
+        log.warning(f"STDERR: {proc.stderr.decode('utf-8')}")
+
+
+def trust_identity(phone_number: str, safety_number: str):
+    """
+        Function that calls the signal-cli `trust` command for the provided phone + safety numbers
+    """
+    with env.SIGNAL_LOCK:
+        proc = subprocess.run(
+            [
+                "signal-cli",
+                "-u",
+                str(env.BOT_NUMBER),
+                "trust",
+                phone_number,
+                "-v",
+                "\"" + safety_number + "\""
+            ],
+            capture_output=False,
+        )
 
 
 def send_message(message: str, recipient: str):
