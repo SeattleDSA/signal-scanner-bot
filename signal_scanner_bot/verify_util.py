@@ -6,6 +6,14 @@ from typing import Tuple
 from . import signal
 
 
+# Logging
+log = logging.getLogger("verifier")
+logging.basicConfig(
+    format="[%(asctime)s - %(name)s - %(lineno)3d][%(levelname)s] %(message)s",
+    level=logging.INFO,
+)
+
+# Constants
 UNTRUSTED_REGEX = re.compile(
     r"""
 ^(?P<phone_number>\+[1-9]\d{10}): UNTRUSTED .* Safety Number: (?P<safety_number>[0-9 ]*)
@@ -30,3 +38,8 @@ def trust_everyone() -> None:
     for phone_number, safety_number in to_verify:
         logging.debug("trusting " + phone_number)
         signal.trust_identity(phone_number, safety_number)
+
+
+if __name__ == "__main__":
+    log.info("Running verification utility")
+    trust_everyone()
