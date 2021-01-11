@@ -6,6 +6,7 @@ from typing import Dict
 
 from . import env
 
+
 log = logging.getLogger(__name__)
 
 
@@ -46,27 +47,23 @@ def message_timestamp(data: Dict) -> datetime:
 
 def list_identities() -> str:
     """
-        Function that calls the signal-cli `listIdentities` command and returns the entire result as a string
+    Function that calls the signal-cli `listIdentities` command and returns the entire result as a string
     """
     with env.SIGNAL_LOCK:
         proc = subprocess.run(
-            [
-                "signal-cli",
-                "-u",
-                str(env.BOT_NUMBER),
-                "listIdentities"
-            ],
+            ["signal-cli", "-u", str(env.BOT_NUMBER), "listIdentities"],
             capture_output=True,
+            text=True,
         )
     if proc.stdout:
-        return proc.stdout.decode('utf-8')
+        return proc.stdout
     if proc.stderr:
-        log.warning(f"STDERR: {proc.stderr.decode('utf-8')}")
+        log.warning(f"STDERR: {proc.stderr}")
 
 
 def trust_identity(phone_number: str, safety_number: str):
     """
-        Function that calls the signal-cli `trust` command for the provided phone + safety numbers
+    Function that calls the signal-cli `trust` command for the provided phone + safety numbers
     """
     with env.SIGNAL_LOCK:
         proc = subprocess.run(
@@ -77,10 +74,15 @@ def trust_identity(phone_number: str, safety_number: str):
                 "trust",
                 phone_number,
                 "-v",
-                "\"" + safety_number + "\""
+                '"' + safety_number + '"',
             ],
             capture_output=False,
+            text=True,
         )
+        if proc.stderr:
+            log.error(f"STDERR: {proc.stderr}")
+        if proc.returncode != 0:
+            log.error(f"Trust call return code: {proc.returncode}")
 
 
 def send_message(message: str, recipient: str):
@@ -104,11 +106,12 @@ def send_message(message: str, recipient: str):
                 *recipient_args,
             ],
             capture_output=True,
+            text=True,
         )
     if proc.stdout:
-        log.info(f"STDOUT: {proc.stdout.decode('utf-8')}")
+        log.info(f"STDOUT: {proc.stdout}")
     if proc.stderr:
-        log.warning(f"STDERR: {proc.stderr.decode('utf-8')}")
+        log.warning(f"STDERR: {proc.stderr}")
 
 
 ################################################################################
