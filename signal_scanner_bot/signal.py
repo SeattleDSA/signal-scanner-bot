@@ -55,10 +55,10 @@ def list_identities() -> str:
             capture_output=True,
             text=True,
         )
-    if proc.stdout:
-        return proc.stdout
     if proc.stderr:
         log.warning(f"STDERR: {proc.stderr}")
+    if proc.stdout:
+        return proc.stdout
 
 
 def trust_identity(phone_number: str, safety_number: str):
@@ -74,7 +74,7 @@ def trust_identity(phone_number: str, safety_number: str):
                 "trust",
                 phone_number,
                 "-v",
-                '"' + safety_number + '"',
+                f'"{safety_number}"',
             ],
             capture_output=False,
             text=True,
