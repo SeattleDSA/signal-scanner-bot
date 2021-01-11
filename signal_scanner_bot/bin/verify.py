@@ -3,7 +3,7 @@ import re
 from typing import List
 from typing import Tuple
 
-from . import signal
+from signal_scanner_bot import signal
 
 
 # Logging
