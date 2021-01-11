@@ -2,7 +2,7 @@ import logging
 import subprocess
 import traceback
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List
 
 from . import env
 
@@ -45,7 +45,7 @@ def message_timestamp(data: Dict) -> datetime:
     return dt
 
 
-def list_identities() -> str:
+def list_identities() -> List[str]:
     """
     Function that calls the signal-cli `listIdentities` command and returns the entire result as a string
     """
@@ -58,7 +58,9 @@ def list_identities() -> str:
     if proc.stderr:
         log.warning(f"STDERR: {proc.stderr}")
     if proc.stdout:
-        return proc.stdout
+        return proc.stdout.split("\n")
+    else:
+        return []
 
 
 def trust_identity(phone_number: str, safety_number: str):
