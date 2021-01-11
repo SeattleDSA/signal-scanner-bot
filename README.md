@@ -22,6 +22,12 @@ After following the registration prompts with your device, the container can be 
 docker-compose up -d
 ```
 
+If a safety number in a group changes, the signal-cli will have issues sending messages.
+The following verification utility will re-verify these numbers.
+```bash
+docker-compose run --rm cli signal-scanner-bot-verify
+```
+
 ## Technicalities
 
 The app has two primary loops, the Signal-to-Twitter loop and the Twitter-to-Signal loop.
