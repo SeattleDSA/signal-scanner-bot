@@ -35,6 +35,8 @@ def _find_unverified_numbers() -> List[Tuple[str, str]]:
 
 def trust_everyone() -> None:
     to_verify = _find_unverified_numbers()
+    if not to_verify:
+        log.info("No numbers to verify!")
     for phone_number, safety_number in to_verify:
         logging.debug("trusting " + phone_number)
         signal.trust_identity(phone_number, safety_number)
