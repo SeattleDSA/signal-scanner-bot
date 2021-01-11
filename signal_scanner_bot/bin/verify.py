@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import logging
 import re
 from typing import List
@@ -42,6 +43,10 @@ def trust_everyone() -> None:
         signal.trust_identity(phone_number, safety_number)
 
 
-if __name__ == "__main__":
+def main():
     log.info("Running verification utility")
     trust_everyone()
+
+
+if __name__ == "__main__":
+    main()

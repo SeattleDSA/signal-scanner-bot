@@ -23,8 +23,8 @@ RUN wget -q https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_
 
 WORKDIR /app
 COPY scripts/register-number.sh .
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY . .
+RUN pip install -r requirements.txt && pip install -e .
 
-CMD ["python", "signal_scanner_bot/bin/run.py"]
+CMD ["signal-scanner-bot"]
 
