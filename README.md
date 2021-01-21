@@ -44,10 +44,16 @@ This loop uses `tweepy`'s streaming API to "track" certain hashtags.
 Similar to the S2T loop, messages pass through filters to see if the criteria is met.
 If it is, the `signal-cli` lock is acquired and the contents of the Tweet is sent to the desired Signal group.
 
+### Hierarchy
+
+* The `env` module supplies environment information/secrets to all loops.
+* The `filter` module is used to define message filters for both Signal & Twitter.
+* The `signal` and `twitter` modules compose the basic building blocks of sending/reading to each platform.
+* The `messages` module combines both Signal & Twitter functionality into higher level `process_*` functions.
+* Lastly, the `transport` module defines the primary read/send loops, using the process functions defined in `messages`.
+
 ### Issues
 Both of these loops use `ascynio` to run concurrently, but as stated above they share the `signal-cli` lock
 Already I've noticed some issues with this setup that I'm hoping to address in the future:
 * T2S messages take a long time to actually get sent
 * Even with the lock, the CLI in the T2S loop still complains that signal is in use and the CLI lock requires some time to be acquired
-* When Twitter traffic on the tracked hashtag is high, the tweepy stream gets closed by Twitter because the messages aren't handled quickly enough
-* When a lot of messages are trying to be sent out in succession by the T2S loop, the `signal-cli` has been giving 413 rate limiting errors
