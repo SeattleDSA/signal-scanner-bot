@@ -108,12 +108,10 @@ async def signal_to_twitter():
     """
     try:
         while not env.STATE.STOP_REQUESTED:
-            log.debug("Acquiring lock to listen for Signal messages")
-            with env.SIGNAL_LOCK:
-                log.debug("Listen lock for Signal messages acquired")
-                # TODO: re-enable JSON
-                proc = await asyncio.create_subprocess_shell(
-                    f"signal-cli -u {env.BOT_NUMBER} receive -t {env.SIGNAL_TIMEOUT}",
+            log.debug("Listening on signal")
+            # TODO: re-enable JSON
+            proc = await asyncio.create_subprocess_shell(
+                f"signal-cli -u {env.BOT_NUMBER} receive -t {env.SIGNAL_TIMEOUT}",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )

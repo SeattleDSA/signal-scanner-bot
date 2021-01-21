@@ -94,22 +94,20 @@ def send_message(message: str, recipient: str):
     group = _check_group(recipient)
     recipient_args = ["-g", recipient] if group else [recipient]
 
-    log.debug("Acquiring signal lock to send")
-    with env.SIGNAL_LOCK:
-        log.debug("Send lock acquired")
-        proc = subprocess.run(
-            [
-                "signal-cli",
-                "-u",
-                str(env.BOT_NUMBER),
-                "send",
-                "-m",
-                message,
-                *recipient_args,
-            ],
-            capture_output=True,
-            text=True,
-        )
+    log.debug("Sending message")
+    proc = subprocess.run(
+        [
+            "signal-cli",
+            "-u",
+            str(env.BOT_NUMBER),
+            "send",
+            "-m",
+            message,
+            *recipient_args,
+        ],
+        capture_output=True,
+        text=True,
+    )
     if proc.stdout:
         log.info(f"STDOUT: {proc.stdout}")
     if proc.stderr:

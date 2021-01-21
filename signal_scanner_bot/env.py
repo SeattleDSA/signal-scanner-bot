@@ -3,7 +3,6 @@ import os
 from asyncio import Queue
 from datetime import time
 from pathlib import Path
-from threading import Lock
 from typing import Any, Callable, List, Set, Optional
 
 
@@ -185,7 +184,6 @@ for tweeter in TRUSTED_TWEETERS:
 ################################################################################
 # Environment State Variables
 ################################################################################
-SIGNAL_LOCK = Lock()
 STATE = _State(AUTOSCAN_STATE_FILE_PATH)
 TWITTER_TO_SIGNAL_QUEUE: Queue = Queue(maxsize=10000)  # shooting from the hip here...
 
