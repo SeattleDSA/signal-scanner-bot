@@ -1,6 +1,7 @@
 import logging
 import os
 from asyncio import Queue
+from datetime import time
 from pathlib import Path
 from threading import Lock
 from typing import Any, Callable, List, Set, Optional
@@ -124,6 +125,10 @@ def _cast_to_path(to_cast: str) -> Path:
     return Path(to_cast)
 
 
+def _cast_to_time(to_cast: str) -> time:
+    return time.fromisoformat(to_cast)
+
+
 def _format_hashtags(to_cast: str) -> List[str]:
     hashtags = _cast_to_list(to_cast)
     if any("#" in hashtag for hashtag in hashtags):
@@ -159,6 +164,14 @@ AUTOSCAN_STATE_FILE_PATH = _env(
     "AUTOSCAN_STATE_FILE_PATH",
     convert=_cast_to_path,
     default="signal_scanner_bot/.autoscanner-state-file",
+)
+COMRADELY_CONTACT = _env("COMRADELY_CONTACT", convert=_cast_to_string, fail=False)
+COMRADELY_MESSAGE = _env("COMRADELY_MESSAGE", convert=_cast_to_string, fail=False)
+COMRADELY_TIME = _env(
+    "COMRADELY_TIME",
+    convert=_cast_to_time,
+    fail=False,
+    default="10:00:00",  # 2pm PST
 )
 
 # Checking to ensure user ids are in the proper format, raise error if not.
