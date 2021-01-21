@@ -112,9 +112,9 @@ async def signal_to_twitter():
             # TODO: re-enable JSON
             proc = await asyncio.create_subprocess_shell(
                 f"signal-cli -u {env.BOT_NUMBER} receive -t {env.SIGNAL_TIMEOUT}",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
             try:
                 # V2 non-json messages are separated by two newlines
                 while line := await proc.stdout.readuntil(separator=b"\n\n"):
@@ -158,6 +158,8 @@ async def comradely_reminder() -> None:
     """
     Top level function for running the comradely reminder loop
     """
+    # Wait for system to initialize...
+    await asyncio.sleep(15)
     try:
         window_start = env.COMRADELY_TIME
         # Can't do arithmetic with python time objects...
