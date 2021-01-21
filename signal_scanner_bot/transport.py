@@ -4,7 +4,7 @@ import logging
 import re
 import subprocess
 from asyncio import IncompleteReadError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Dict
 
 from peony import events
@@ -161,14 +161,24 @@ async def comradely_reminder() -> None:
     Top level function for running the comradely reminder loop
     """
     try:
+        window_start = env.COMRADELY_TIME
+        # Can't do arithmetic with python time objects...
+        # So we have to convert it into a datetime, add the timedelta, then swap
+        # it back to a time object
+        window_end = (
+            datetime.combine(date(1, 1, 1), window_start) + timedelta(hours=1)
+        ).time()
         while True:
             now = datetime.now().time()
-            start = env.COMRADELY_TIME
+            log.debug(f"Now: {now.isoformat()} | Start: {window_start.isoformat()}")
             # Check if we're currently within a 1-hour time window
-            if start <= now < (start + timedelta(hours=1)):
+            if window_start <= now < window_end:
+                log.debug("Within time window")
                 await messages.send_comradely_reminder()
             # Wait at least 60 minutes for the next check
+            log.debug("Waiting an hour...")
             await asyncio.sleep(60 * 60)
     except Exception as err:
+        log.exception(err)
         signal.panic(err)
         raise
