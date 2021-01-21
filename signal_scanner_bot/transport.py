@@ -4,6 +4,7 @@ import logging
 import re
 import subprocess
 from asyncio import IncompleteReadError
+from datetime import datetime, timedelta
 from typing import Dict
 
 from peony import events
@@ -150,3 +151,24 @@ async def signal_to_twitter():
         except ProcessLookupError:
             log.warning("Failed to kill process, moving on.")
             pass
+
+
+################################################################################
+# Comradely Reminder
+################################################################################
+async def comradely_reminder() -> None:
+    """
+    Top level function for running the comradely reminder loop
+    """
+    try:
+        while True:
+            now = datetime.now().time()
+            start = env.COMRADELY_TIME
+            # Check if we're currently within a 1-hour time window
+            if start <= now < (start + timedelta(hours=1)):
+                await messages.send_comradely_reminder()
+            # Wait at least 60 minutes for the next check
+            await asyncio.sleep(60 * 60)
+    except Exception as err:
+        signal.panic(err)
+        raise

@@ -159,3 +159,13 @@ async def process_twitter_message(status: Dict) -> None:
     # On the off chance a message is an empty string just skip sending
     if message:
         await env.TWITTER_TO_SIGNAL_QUEUE.put(message)
+
+
+async def send_comradely_reminder() -> None:
+    """
+    Send a comradely reminder.
+    """
+    if not (env.COMRADELY_CONTACT and env.COMRADELY_MESSAGE):
+        return
+    log.info("Sending comradely message")
+    signal.send_message(env.COMRADELY_MESSAGE, env.COMRADELY_CONTACT)
