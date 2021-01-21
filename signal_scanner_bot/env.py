@@ -171,7 +171,7 @@ COMRADELY_TIME = _env(
     "COMRADELY_TIME",
     convert=_cast_to_time,
     fail=False,
-    default="10:00:00",  # 2pm PST
+    default="20:00:00",  # 2pm PST
 )
 
 # Checking to ensure user ids are in the proper format, raise error if not.
