@@ -9,6 +9,7 @@ from signal_scanner_bot.transport import (
     signal_to_twitter,
     twitter_to_queue,
     queue_to_signal,
+    comradely_reminder,
 )
 
 
@@ -42,6 +43,7 @@ def cli(debug: bool = False) -> None:
             signal_to_twitter(),
             queue_to_signal(),
             twitter_to_queue(),
+            comradely_reminder(),
             return_exceptions=True,
         )
     )

@@ -49,12 +49,11 @@ def list_identities() -> List[str]:
     """
     Function that calls the signal-cli `listIdentities` command and returns the entire result as a string
     """
-    with env.SIGNAL_LOCK:
-        proc = subprocess.run(
-            ["signal-cli", "-u", str(env.BOT_NUMBER), "listIdentities"],
-            capture_output=True,
-            text=True,
-        )
+    proc = subprocess.run(
+        ["signal-cli", "-u", str(env.BOT_NUMBER), "listIdentities"],
+        capture_output=True,
+        text=True,
+    )
     if proc.stderr:
         log.warning(f"STDERR: {proc.stderr}")
     if proc.stdout:
@@ -67,24 +66,23 @@ def trust_identity(phone_number: str, safety_number: str):
     """
     Function that calls the signal-cli `trust` command for the provided phone + safety numbers
     """
-    with env.SIGNAL_LOCK:
-        proc = subprocess.run(
-            [
-                "signal-cli",
-                "-u",
-                str(env.BOT_NUMBER),
-                "trust",
-                phone_number,
-                "-v",
-                f'"{safety_number}"',
-            ],
-            capture_output=False,
-            text=True,
-        )
-        if proc.stderr:
-            log.error(f"STDERR: {proc.stderr}")
-        if proc.returncode != 0:
-            log.error(f"Trust call return code: {proc.returncode}")
+    proc = subprocess.run(
+        [
+            "signal-cli",
+            "-u",
+            str(env.BOT_NUMBER),
+            "trust",
+            phone_number,
+            "-v",
+            f'"{safety_number}"',
+        ],
+        capture_output=False,
+        text=True,
+    )
+    if proc.stderr:
+        log.error(f"STDERR: {proc.stderr}")
+    if proc.returncode != 0:
+        log.error(f"Trust call return code: {proc.returncode}")
 
 
 def send_message(message: str, recipient: str):
@@ -94,22 +92,20 @@ def send_message(message: str, recipient: str):
     group = _check_group(recipient)
     recipient_args = ["-g", recipient] if group else [recipient]
 
-    log.debug("Acquiring signal lock to send")
-    with env.SIGNAL_LOCK:
-        log.debug("Send lock acquired")
-        proc = subprocess.run(
-            [
-                "signal-cli",
-                "-u",
-                str(env.BOT_NUMBER),
-                "send",
-                "-m",
-                message,
-                *recipient_args,
-            ],
-            capture_output=True,
-            text=True,
-        )
+    log.debug("Sending message")
+    proc = subprocess.run(
+        [
+            "signal-cli",
+            "-u",
+            str(env.BOT_NUMBER),
+            "send",
+            "-m",
+            message,
+            *recipient_args,
+        ],
+        capture_output=True,
+        text=True,
+    )
     if proc.stdout:
         log.info(f"STDOUT: {proc.stdout}")
     if proc.stderr:

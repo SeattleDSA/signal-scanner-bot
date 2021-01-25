@@ -4,6 +4,7 @@ import logging
 import re
 import subprocess
 from asyncio import IncompleteReadError
+from datetime import datetime, timedelta, date
 from typing import Dict
 
 from peony import events
@@ -107,15 +108,13 @@ async def signal_to_twitter():
     """
     try:
         while not env.STATE.STOP_REQUESTED:
-            log.debug("Acquiring lock to listen for Signal messages")
-            with env.SIGNAL_LOCK:
-                log.debug("Listen lock for Signal messages acquired")
-                # TODO: re-enable JSON
-                proc = await asyncio.create_subprocess_shell(
-                    f"signal-cli -u {env.BOT_NUMBER} receive -t {env.SIGNAL_TIMEOUT}",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
+            log.debug("Listening on signal")
+            # TODO: re-enable JSON
+            proc = await asyncio.create_subprocess_shell(
+                f"signal-cli -u {env.BOT_NUMBER} receive -t {env.SIGNAL_TIMEOUT}",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
             try:
                 # V2 non-json messages are separated by two newlines
                 while line := await proc.stdout.readuntil(separator=b"\n\n"):
@@ -150,3 +149,36 @@ async def signal_to_twitter():
         except ProcessLookupError:
             log.warning("Failed to kill process, moving on.")
             pass
+
+
+################################################################################
+# Comradely Reminder
+################################################################################
+async def comradely_reminder() -> None:
+    """
+    Top level function for running the comradely reminder loop
+    """
+    # Wait for system to initialize...
+    await asyncio.sleep(15)
+    try:
+        window_start = env.COMRADELY_TIME
+        # Can't do arithmetic with python time objects...
+        # So we have to convert it into a datetime, add the timedelta, then swap
+        # it back to a time object
+        window_end = (
+            datetime.combine(date(1, 1, 1), window_start) + timedelta(hours=1)
+        ).time()
+        while True:
+            now = datetime.now().time()
+            log.debug(f"Now: {now.isoformat()} | Start: {window_start.isoformat()}")
+            # Check if we're currently within a 1-hour time window
+            if window_start <= now < window_end:
+                log.debug("Within time window")
+                await messages.send_comradely_reminder()
+            # Wait at least 60 minutes for the next check
+            log.debug("Waiting an hour...")
+            await asyncio.sleep(60 * 60)
+    except Exception as err:
+        log.exception(err)
+        signal.panic(err)
+        raise
