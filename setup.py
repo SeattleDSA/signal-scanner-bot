@@ -41,7 +41,10 @@ setup(
     ],
     description="A bot for conveying DSA scanner messages from Signal to Twitter",
     entry_points={
-        "console_scripts": ["signal-scanner-bot=signal_scanner_bot.bin.run:cli"],
+        "console_scripts": [
+            "signal-scanner-bot=signal_scanner_bot.bin.run:cli",
+            "signal-scanner-bot-verify=signal_scanner_bot.bin.verify:main",
+        ],
     },
     install_requires=requirements,
     license="MIT license",
