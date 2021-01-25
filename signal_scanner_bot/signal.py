@@ -49,12 +49,11 @@ def list_identities() -> List[str]:
     """
     Function that calls the signal-cli `listIdentities` command and returns the entire result as a string
     """
-    with env.SIGNAL_LOCK:
-        proc = subprocess.run(
-            ["signal-cli", "-u", str(env.BOT_NUMBER), "listIdentities"],
-            capture_output=True,
-            text=True,
-        )
+    proc = subprocess.run(
+        ["signal-cli", "-u", str(env.BOT_NUMBER), "listIdentities"],
+        capture_output=True,
+        text=True,
+    )
     if proc.stderr:
         log.warning(f"STDERR: {proc.stderr}")
     if proc.stdout:
@@ -67,24 +66,23 @@ def trust_identity(phone_number: str, safety_number: str):
     """
     Function that calls the signal-cli `trust` command for the provided phone + safety numbers
     """
-    with env.SIGNAL_LOCK:
-        proc = subprocess.run(
-            [
-                "signal-cli",
-                "-u",
-                str(env.BOT_NUMBER),
-                "trust",
-                phone_number,
-                "-v",
-                f'"{safety_number}"',
-            ],
-            capture_output=False,
-            text=True,
-        )
-        if proc.stderr:
-            log.error(f"STDERR: {proc.stderr}")
-        if proc.returncode != 0:
-            log.error(f"Trust call return code: {proc.returncode}")
+    proc = subprocess.run(
+        [
+            "signal-cli",
+            "-u",
+            str(env.BOT_NUMBER),
+            "trust",
+            phone_number,
+            "-v",
+            f'"{safety_number}"',
+        ],
+        capture_output=False,
+        text=True,
+    )
+    if proc.stderr:
+        log.error(f"STDERR: {proc.stderr}")
+    if proc.returncode != 0:
+        log.error(f"Trust call return code: {proc.returncode}")
 
 
 def send_message(message: str, recipient: str):
