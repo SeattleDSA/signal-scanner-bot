@@ -57,20 +57,3 @@ jobs:
         run: pip install pytest pytest-cov
       - name: Test with pytest
         run: pytest --cov .
-
-  build:
-    runs-on: ubuntu-latest
-    # Builds are expensive to run, don't run them unless the other checks pass
-    needs: [format, lint, types]
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-      - name: Install Dependencies
-        run: pip install docker-compose
-      - name: Make fake environment file
-        run: touch .env
-      - name: Build Docker image
-        run: docker-compose build
