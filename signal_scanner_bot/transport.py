@@ -37,7 +37,8 @@ async def twitter_to_queue():
                 log.info("Connected to the stream")
             elif events.on_tweet(data) and env.STATE.LISTENING:
                 if _filter_hashtags(data, env.RECEIVE_HASHTAGS):
-                    await messages.process_twitter_message(data)
+                    if data["user"]["id_str"] in env.TRUSTED_TWEETERS:
+                        await messages.process_twitter_message(data)
 
 
 ################################################################################
