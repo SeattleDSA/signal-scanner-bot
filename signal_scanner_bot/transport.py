@@ -2,9 +2,9 @@
 import asyncio
 import logging
 import subprocess
-import ujson
-import datetime
+from datetime import datetime, date, timedelta
 
+import ujson
 from peony import events
 
 from . import env
@@ -125,11 +125,10 @@ async def comradely_reminder() -> None:
         # So we have to convert it into a datetime, add the timedelta, then swap
         # it back to a time object
         window_end = (
-            datetime.datetime.combine(datetime.date(1, 1, 1), window_start)
-            + datetime.timedelta(hours=1)
+            datetime.combine(date(1, 1, 1), window_start) + timedelta(hours=1)
         ).time()
         while True:
-            now = datetime.datetime.now().time()
+            now = datetime.now().time()
             log.debug(f"Now: {now.isoformat()} | Start: {window_start.isoformat()}")
             # Check if we're currently within a 1-hour time window
             if window_start <= now < window_end:
