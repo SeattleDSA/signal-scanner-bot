@@ -1,12 +1,10 @@
 """Main module."""
 import asyncio
 import logging
-import re
 import subprocess
-from asyncio import IncompleteReadError
-from datetime import datetime, timedelta, date
-from typing import Dict
+from datetime import datetime, date, timedelta
 
+import ujson
 from peony import events
 
 from . import env
@@ -52,6 +50,7 @@ async def queue_to_signal():
     queue which might take a while we'll have to see.
     """
     while True:
+        log.debug("Trying to empty Twitter to Signal queue.")
         while not env.TWITTER_TO_SIGNAL_QUEUE.empty():
             try:
                 log.debug("Emptying Twitter to Signal queue.")
@@ -72,68 +71,25 @@ async def queue_to_signal():
 ################################################################################
 # Signal-to-Twitter
 ################################################################################
-# Pull out the important bits, all other messages are ignored
-HOTFIX_REGEX = re.compile(
-    """.*
-Timestamp: (?P<timestamp>.*?) .*
-.*?
-Body: (?P<message>.*?)
-Group info:
-  Id: (?P<groupId>.*?)
-.*
-""",
-    flags=re.MULTILINE | re.DOTALL,
-)
-
-
-def _hotfix_convert_to_dict(text: str) -> Dict:
-    """
-    Hotfix to maintain JSON message format
-    """
-    if match := HOTFIX_REGEX.match(text):
-        log.debug(f"MATCH GROUPS: {match.groups()}")
-        d = match.groupdict()
-        return {
-            "envelope": {
-                "dataMessage": {
-                    "message": d["message"],
-                    "timestamp": int(d["timestamp"]),
-                    "groupInfo": {"groupId": d["groupId"]},
-                }
-            }
-        }
-    return {}
-
-
 async def signal_to_twitter():
     """
     Top level function for running the signal-to-twitter loop.
     """
     try:
         while not env.STATE.STOP_REQUESTED:
-            log.debug("Listening on signal")
-            # TODO: re-enable JSON
             proc = await asyncio.create_subprocess_shell(
-                f"signal-cli -u {env.BOT_NUMBER} receive -t {env.SIGNAL_TIMEOUT}",
+                f"signal-cli -u {env.BOT_NUMBER} receive --json -t {env.SIGNAL_TIMEOUT}",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            try:
-                # V2 non-json messages are separated by two newlines
-                while line := await proc.stdout.readuntil(separator=b"\n\n"):
-                    line = line.decode("utf-8").rstrip()
-                    log.debug(f"MESSAGE LINE: {line}")
-                    blob = _hotfix_convert_to_dict(line)
-                    if not blob:
-                        continue
-                    try:
-                        await messages.process_signal_message(blob, env.CLIENT)
-                    except Exception:
-                        log.error(f"Malformed message: {blob}")
-                        raise
-            except IncompleteReadError:
-                # If nothing is read this error will be thrown, it can be safely ignored
-                pass
+            while line := await proc.stdout.readline():
+                line = line.decode("utf-8").rstrip()
+                blob = ujson.loads(line)
+                try:
+                    await messages.process_signal_message(blob, env.CLIENT)
+                except Exception:
+                    log.error(f"Malformed message: {blob}")
+                    raise
             # Check to see if there's any content in stderr
             error = (await proc.stderr.read()).decode()
             for line in error.split("\n"):
