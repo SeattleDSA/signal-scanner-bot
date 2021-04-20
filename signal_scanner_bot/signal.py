@@ -74,7 +74,7 @@ def trust_identity(phone_number: str, safety_number: str):
             "trust",
             phone_number,
             "-v",
-            f'"{safety_number}"',
+            f'{safety_number.replace(" ", "")}',
         ],
         capture_output=False,
         text=True,
