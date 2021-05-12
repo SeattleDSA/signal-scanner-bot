@@ -16,10 +16,7 @@ logging.basicConfig(
 
 # Constants
 UNTRUSTED_REGEX = re.compile(
-    r"""
-^(?P<phone_number>\+[1-9]\d{10}): UNTRUSTED .* Safety Number: (?P<safety_number>[0-9 ]*)
-""",
-    flags=re.MULTILINE,
+    r"^(?P<phone_number>\+[1-9]\d{10}): UNTRUSTED .* Safety Number: (?P<safety_number>[0-9 ]*)"
 )
 
 
