@@ -9,6 +9,6 @@ services:
     volumes:
       - signal-cli:/app/data/signal-cli
       - ./signal_scanner_bot:/app/signal_scanner_bot
-    restart: always
+    restart: unless-stopped
 volumes:
   signal-cli:
