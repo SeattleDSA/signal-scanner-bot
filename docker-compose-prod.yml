@@ -1,0 +1,13 @@
+version: '3'
+services:
+  cli:
+    image: sdsa/signal-scanner-bot
+    env_file:
+      - .env
+    environment:
+      - XDG_DATA_HOME=/app/data
+    volumes:
+      - signal-cli:/app/data/signal-cli
+    restart: unless-stopped
+volumes:
+  signal-cli:
