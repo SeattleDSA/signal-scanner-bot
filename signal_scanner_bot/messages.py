@@ -1,14 +1,13 @@
 import logging
 import re
 from textwrap import dedent
-from typing import Dict, List, Callable, TypeVar
+from typing import Callable, Dict, List, TypeVar
 
 import peony
 
-from . import env
-from . import signal
-from . import twitter
+from . import env, signal, twitter
 from .filters import SIGNAL_FILTERS, TWITTER_FILTERS
+
 
 log = logging.getLogger(__name__)
 

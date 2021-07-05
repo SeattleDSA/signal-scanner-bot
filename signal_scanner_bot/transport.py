@@ -2,14 +2,13 @@
 import asyncio
 import logging
 import subprocess
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 
 import ujson
 from peony import events
 
-from . import env
-from . import messages
-from . import signal
+from . import env, messages, signal
+
 
 log = logging.getLogger(__name__)
 

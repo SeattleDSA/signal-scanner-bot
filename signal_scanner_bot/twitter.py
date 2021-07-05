@@ -4,8 +4,8 @@ from typing import List
 
 import peony
 
-from . import env
-from . import signal
+from . import env, signal
+
 
 log = logging.getLogger(__name__)
 

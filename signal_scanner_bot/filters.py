@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Dict, List, Callable
+from typing import Callable, Dict, List
 
 from . import env
 from .signal import message_timestamp

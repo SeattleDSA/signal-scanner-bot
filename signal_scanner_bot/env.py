@@ -3,8 +3,7 @@ import os
 from asyncio import Queue
 from datetime import time
 from pathlib import Path
-from typing import Any, Callable, List, Set, Optional
-
+from typing import Any, Callable, List, Optional, Set
 
 import peony
 

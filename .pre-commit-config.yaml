@@ -67,7 +67,7 @@ repos:
         description: Only executable files should have shebangs (e.g. '#!/usr/bin/env python')
         entry: "#!/"
         pass_filenames: true
-        exclude: bin|cli|manage.py|app.py
+        exclude: bin|cli|manage.py|app.py|setup.py|docs
         files: \.py$
 
   - repo: https://gitlab.com/pycqa/flake8
@@ -89,4 +89,6 @@ repos:
     rev: v0.902
     hooks:
         - id: mypy
-          additional_dependencies: [types_Jinja2==2.11.2]
+          additional_dependencies:
+            - types-click
+            - types-ujson
