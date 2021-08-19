@@ -56,7 +56,8 @@ repos:
           - --convention=pep257
           # Do not require docstrings, only check existing ones. (D1)
           # Allow for a newline after a docstring. (D202)
-          - --add-ignore=D1,D202
+          # Don't require a summary line. (D205)
+          - --add-ignore=D1,D202,D205
         exclude: tests/
 
   - repo: local
