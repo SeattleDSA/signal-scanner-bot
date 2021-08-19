@@ -44,10 +44,7 @@ async def twitter_to_queue():
 # Queue-to-Signal
 ################################################################################
 async def queue_to_signal():
-    """
-    Top level function for running the queue-to-signal loop. Flushes the entire
-    queue which might take a while we'll have to see.
-    """
+    """Run the queue-to-signal loop. Flushes the entire queue on each call."""
     while True:
         log.debug("Trying to empty Twitter to Signal queue.")
         while not env.TWITTER_TO_SIGNAL_QUEUE.empty():
@@ -71,7 +68,7 @@ async def queue_to_signal():
 # Signal-to-Twitter
 ################################################################################
 async def signal_to_twitter():
-    """Top level function for running the signal-to-twitter loop."""
+    """Run the signal-to-twitter loop."""
     try:
         while not env.STATE.STOP_REQUESTED:
             proc = await asyncio.create_subprocess_shell(
@@ -111,7 +108,7 @@ async def signal_to_twitter():
 # Comradely Reminder
 ################################################################################
 async def comradely_reminder() -> None:
-    """Top level function for running the comradely reminder loop."""
+    """Run the comradely reminder loop."""
     # Wait for system to initialize...
     await asyncio.sleep(15)
     try:

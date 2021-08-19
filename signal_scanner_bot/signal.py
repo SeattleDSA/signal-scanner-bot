@@ -14,10 +14,7 @@ log = logging.getLogger(__name__)
 # Private Functions
 ################################################################################
 def _check_group(recipient: str) -> bool:
-    """
-    Function to check whether a supplied recipient string is in the phone number
-    or group format.
-    """
+    """Check whether a supplied recipient is in the phone number or group format."""
     if recipient.endswith("=") and len(recipient) in {24, 44}:
         # Heuristic: this is usually the pattern of group IDs
         return True
@@ -33,7 +30,7 @@ def _check_group(recipient: str) -> bool:
 ################################################################################
 def message_timestamp(data: Dict) -> datetime:
     """
-    Function to extract the timestamp from a Signal message and convert it to
+    Extract the timestamp from a Signal message and convert it to
     a proper datetime object.
     """
     try:
@@ -47,7 +44,8 @@ def message_timestamp(data: Dict) -> datetime:
 
 def list_identities() -> List[str]:
     """
-    Function that calls the signal-cli `listIdentities` command and returns the entire result as a string
+    Call the signal-cli `listIdentities` command and return the entire
+    result as a list of strings.
     """
     proc = subprocess.run(
         ["signal-cli", "-u", str(env.BOT_NUMBER), "listIdentities"],
@@ -63,9 +61,7 @@ def list_identities() -> List[str]:
 
 
 def trust_identity(phone_number: str, safety_number: str):
-    """
-    Function that calls the signal-cli `trust` command for the provided phone + safety numbers
-    """
+    """Call the signal-cli `trust` command for the provided phone + safety numbers."""
     proc = subprocess.run(
         [
             "signal-cli",

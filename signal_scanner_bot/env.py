@@ -31,8 +31,8 @@ def _env(
     default: Any = None,
 ) -> Any:
     """
-    Function used to read container/OS environmnet variables in and return the
-    values to be stored in global Python variables.
+    Read container/OS environment variables in and return the values,
+    which can then be stored in global Python variables.
     """
     value = os.environ.get(key)
     if value is None:
@@ -45,10 +45,7 @@ def _env(
 
 
 def log_vars() -> None:
-    """
-    Function to allow simple logging of environment variables in any part of the
-    application.
-    """
+    """Log all environment variables in any part of the application."""
     log.debug("Input environment variables")
     for key, value in _VARS:
         log.debug(f"{key}={value}")
@@ -58,7 +55,7 @@ def log_vars() -> None:
 # Classes
 ################################################################################
 class _State:
-    """Class for holding global state across threads/tasks."""
+    """Global state management across threads/tasks."""
 
     # Initialize state, set LISTENING to true if state file exists,
     # sets false if not.
