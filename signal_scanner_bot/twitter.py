@@ -126,9 +126,7 @@ async def _send_tweet_thread(tweet_list: List[str], client: peony.PeonyClient) -
 # Public functions
 ################################################################################
 async def send_tweet(tweet: str, client: peony.PeonyClient) -> None:
-    """
-    High level function to build and send tweets from incoming message streams
-    """
+    """High level function to build and send tweets from incoming message streams."""
     # Builds the hashtags that will be sent along with the tweet, if any
     hashtags = _build_hashtags(env.SEND_HASHTAGS)
 

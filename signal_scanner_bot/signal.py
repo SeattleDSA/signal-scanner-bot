@@ -86,9 +86,7 @@ def trust_identity(phone_number: str, safety_number: str):
 
 
 def send_message(message: str, recipient: str):
-    """
-    High level function to send a Signal message to a specified recipient.
-    """
+    """High level function to send a Signal message to a specified recipient."""
     group = _check_group(recipient)
     recipient_args = ["-g", recipient] if group else [recipient]
 

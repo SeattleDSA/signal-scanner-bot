@@ -71,9 +71,7 @@ async def queue_to_signal():
 # Signal-to-Twitter
 ################################################################################
 async def signal_to_twitter():
-    """
-    Top level function for running the signal-to-twitter loop.
-    """
+    """Top level function for running the signal-to-twitter loop."""
     try:
         while not env.STATE.STOP_REQUESTED:
             proc = await asyncio.create_subprocess_shell(
@@ -113,9 +111,7 @@ async def signal_to_twitter():
 # Comradely Reminder
 ################################################################################
 async def comradely_reminder() -> None:
-    """
-    Top level function for running the comradely reminder loop
-    """
+    """Top level function for running the comradely reminder loop."""
     # Wait for system to initialize...
     await asyncio.sleep(15)
     try:

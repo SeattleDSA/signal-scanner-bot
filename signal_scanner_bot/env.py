@@ -58,7 +58,7 @@ def log_vars() -> None:
 # Classes
 ################################################################################
 class _State:
-    """Class for holding global state across threads/tasks"""
+    """Class for holding global state across threads/tasks."""
 
     # Initialize state, set LISTENING to true if state file exists,
     # sets false if not.

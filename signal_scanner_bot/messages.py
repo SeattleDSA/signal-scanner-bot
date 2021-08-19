@@ -37,32 +37,27 @@ def _pass_filters(data: D, filters: List[Callable[[D], bool]]) -> bool:
 
 
 def _is_scanner_message(message: str) -> bool:
-    """
-    Check if a string starts with any of the header prefixes.
-    """
+    """Check if a string starts with any of the header prefixes."""
     return any(
         [message.upper().startswith(header) for header in env.SIGNAL_MESSAGE_HEADERS]
     )
 
 
 def _condense_command(message: str) -> str:
-    """
-    Remove any non alphanumeric characters from a string.
-    """
+    """Remove any non alphanumeric characters from a string."""
     return NON_ALPHA_NUMERIC.sub("", message).upper()
 
 
 def _strip_tweet_hashtags(status_text: str) -> str:
-    """
-    Strip out words from tweet that are hashtags (ie. begin with a #)
-    """
+    """Strip out words from tweet that are hashtags (ie. begin with a #)."""
     text_split = [word for word in status_text.split() if not word.startswith("#")]
     text = " ".join(text_split)
     return text
 
 
 def _build_tweet_url(status: Dict) -> str:
-    """
+    """Build the URL for a tweet.
+
     Returns a link to the tweet provided. Surprisingly the Twitter API
     doesn't have a self link as a property of a tweet, so we have to
     build it ourselves.
@@ -71,16 +66,12 @@ def _build_tweet_url(status: Dict) -> str:
 
 
 def _format_tweet_text(status: Dict) -> str:
-    """
-    Extract text from a tweet and build a signal message
-    """
+    """Extract text from a tweet and build a signal message."""
     return f"{_strip_tweet_hashtags(status['text'])}\n{_build_tweet_url(status)}"
 
 
 def _format_retweet_text(status: Dict) -> str:
-    """
-    Extract text from retweet and build signal message
-    """
+    """Extract text from retweet and build signal message."""
     # Pull text out of the main tweet and sub tweet
     top_level_tweet_text = _strip_tweet_hashtags(status["text"])
     quoted_tweet_text = _strip_tweet_hashtags(status["quoted_status"])
@@ -161,9 +152,7 @@ async def process_twitter_message(status: Dict) -> None:
 
 
 async def send_comradely_reminder() -> None:
-    """
-    Send a comradely reminder.
-    """
+    """Send a comradely reminder."""
     if not (env.COMRADELY_CONTACT and env.COMRADELY_MESSAGE):
         return
     log.info("Sending comradely message")
