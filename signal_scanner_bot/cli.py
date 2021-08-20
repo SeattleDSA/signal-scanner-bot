@@ -1,5 +1,6 @@
 """Console script for signal_scanner_bot."""
 import sys
+
 import click
 
 

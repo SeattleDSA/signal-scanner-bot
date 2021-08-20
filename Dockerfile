@@ -27,4 +27,3 @@ COPY . .
 RUN pip install -r requirements.txt && pip install -e .
 
 CMD ["signal-scanner-bot"]
-

@@ -6,10 +6,10 @@ import click
 
 from signal_scanner_bot import env
 from signal_scanner_bot.transport import (
+    comradely_reminder,
+    queue_to_signal,
     signal_to_twitter,
     twitter_to_queue,
-    queue_to_signal,
-    comradely_reminder,
 )
 
 

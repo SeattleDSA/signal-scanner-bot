@@ -4,8 +4,8 @@ from typing import List
 
 import peony
 
-from . import env
-from . import signal
+from . import env, signal
+
 
 log = logging.getLogger(__name__)
 
@@ -23,8 +23,8 @@ TWEET_PADDING = 10
 ################################################################################
 def _create_tweet_thread(message: str, hashtags: str) -> List[str]:
     """
-    Function to take in a string of variable length and build a list of
-    unformatted tweet messages of the proper length.
+    Take in a string of variable length and build a list of unformatted tweet
+    messages of the proper length.
     """
     # Split tweet into word list, create empty list to store serialized tweets
     # index to track last position
@@ -67,9 +67,8 @@ def _create_tweet_thread(message: str, hashtags: str) -> List[str]:
 
 def _build_hashtags(hashtags: List[str]) -> str:
     """
-    Function to build single string object from list of hashtags, replacing
-    the leading # with a _ in case of testing so as not to pollute any
-    production comms.
+    Build single string object from list of hashtags, replacing the leading # with
+    a _ in case of testing so as not to pollute any production comms.
     """
     if env.TESTING:
         hashtags = [x.replace("#", "_") for x in hashtags]
@@ -78,7 +77,7 @@ def _build_hashtags(hashtags: List[str]) -> str:
 
 def _format_tweet_message(tweet_list: List[str], hashtags: str) -> List[str]:
     """
-    Function to format tweets as desired. This function shoudl be fairly flexible
+    Format tweets as desired. This function should be fairly flexible
     and really only require that you be mindful of the tweet padding constants
     when attempting to make changes to the formatting of any tweets you wish to
     send.
@@ -103,7 +102,7 @@ def _format_tweet_message(tweet_list: List[str], hashtags: str) -> List[str]:
 
 async def _send_tweet_thread(tweet_list: List[str], client: peony.PeonyClient) -> None:
     """
-    Function to take a list of tweet messages and send them as a twitter thread,
+    Take a list of tweet messages and send them as a twitter thread,
     or, if there is only one object in the list, a single tweet.
     """
     tweet_id = None
@@ -126,9 +125,7 @@ async def _send_tweet_thread(tweet_list: List[str], client: peony.PeonyClient) -
 # Public functions
 ################################################################################
 async def send_tweet(tweet: str, client: peony.PeonyClient) -> None:
-    """
-    High level function to build and send tweets from incoming message streams
-    """
+    """Build and send tweets from incoming message streams."""
     # Builds the hashtags that will be sent along with the tweet, if any
     hashtags = _build_hashtags(env.SEND_HASHTAGS)
 
