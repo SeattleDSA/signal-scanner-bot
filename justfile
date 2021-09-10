@@ -1,5 +1,7 @@
 set dotenv-load := false
-DC := "docker-compose"
+IS_PROD := env_var_or_default("IS_PROD", "")
+COMPOSE_FILE := if IS_PROD == "true" {"-f docker-compose-prod.yml "} else {""}
+DC := "docker-compose " + COMPOSE_FILE
 RUN := "run --rm cli"
 
 # Build the containers
@@ -14,17 +16,13 @@ up service="":
 down:
 	{{ DC }} down
 
-# Production deployment
-deploy:
-	{{ DC }} -f docker-compose-prod.yml up -d
-
 # Verify all numbers
 verify:
-	{{ DC }} -f docker-compose-prod.yml {{ RUN }} signal-scanner-bot-verify
+	{{ DC }} {{ RUN }} signal-scanner-bot-verify
 
 # Register a new number
-register file="docker-compose.yml":
-	{{ DC }} -f {{ file }} {{ RUN }} ./register-number.sh
+register:
+	{{ DC }} {{ RUN }} ./register-number.sh
 
 # Static checks
 static:
