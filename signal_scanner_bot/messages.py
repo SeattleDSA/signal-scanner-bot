@@ -107,7 +107,9 @@ async def process_signal_message(blob: Dict, client: peony.PeonyClient) -> None:
     """
     log.debug(f"Got message: {blob}")
     envelope = blob.get("envelope", {})
-    if not envelope or "dataMessage" not in envelope:
+    if not envelope or (
+        "dataMessage" not in envelope and "receiptMessage" not in envelope
+    ):
         log.error(f"Malformed message: {blob}")
 
     data = envelope.get("dataMessage") or {}
