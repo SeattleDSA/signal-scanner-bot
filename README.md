@@ -11,7 +11,7 @@ To deploy, copy `.env.example` to `.env` and populate with the appropriate value
 
 ## Setup
 
-We use `just` as our command runner for this repo. 
+We use `just` as our command runner for this repo.
 The same `just` commands described below can be used to deploy production.
 The `docker-compose-prod.yml` file defines the minimum services for running in production.
 In order to use this file, set the `IS_PROD` environment variable to `true`.
