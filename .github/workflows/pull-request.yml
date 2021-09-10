@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
 
-  format:
+  static-checks:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,40 +13,14 @@ jobs:
         with:
           python-version: 3.8
       - name: Install Dependencies
-        run: pip install black
-      - name: Check formatting with black
-        run: black --check .
-
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-      - name: Install Dependencies
-        run: pip install flake8
-      - name: Lint with flake8
-        run: flake8 .
-
-  types:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
-        with:
-          python-version: 3.8
-      - name: Install Dependencies
-        run: pip install mypy types-ujson
-      - name: Check typing with mypy
-        run: mypy .
+        run: pip install pre-commit
+      - name: Run static checks
+        run: pre-commit run --all-files
 
   test:
     runs-on: ubuntu-latest
     # Tests are expensive to run, don't run them unless the other checks pass
-    needs: [format, lint, types]
+    needs: [static-checks]
 
     steps:
       - uses: actions/checkout@v2
