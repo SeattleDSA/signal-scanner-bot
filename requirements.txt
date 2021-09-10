@@ -3,4 +3,4 @@ peony-twitter==2.0.2
 pre-commit==2.9.0
 tweepy==3.9.0
 ujson==3.1.0
-urllib3==1.25.11
+urllib3==1.26.5
