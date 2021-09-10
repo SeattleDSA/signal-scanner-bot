@@ -11,21 +11,27 @@ To deploy, copy `.env.example` to `.env` and populate with the appropriate value
 
 ## Setup
 
+We use `just` as our command runner for this repo. 
+The same `just` commands described below can be used to deploy production.
+The `docker-compose-prod.yml` file defines the minimum services for running in production.
+In order to use this file, set the `IS_PROD` environment variable to `true`.
+This will run all commands using the prod docker file.
+
 A phone must be registered prior to running the container.
 This can be done with the following command:
 ```bash
-docker-compose run --rm cli ./register-number.sh
+just register
 ```
 
 After following the registration prompts with your device, the container can be run with:
 ```bash
-docker-compose up -d
+just up
 ```
 
 If a safety number in a group changes, the signal-cli will have issues sending messages.
 The following verification utility will re-verify these numbers.
 ```bash
-docker-compose run --rm cli signal-scanner-bot-verify
+just verify
 ```
 
 ## Technicalities
