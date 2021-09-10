@@ -1,5 +1,5 @@
 Click==7.1.2
-peony-twitter==1.1.7
+peony-twitter==2.0.2
 pre-commit==2.9.0
 tweepy==3.9.0
 ujson==3.1.0
