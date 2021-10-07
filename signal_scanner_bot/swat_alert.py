@@ -23,15 +23,13 @@ def get_pigs(calls: Dict) -> Optional(List):
 
 
 def format_pigs(pigs: List) -> str:
-    formated_pigs = []
-    for pig in pigs:
-        formated_pigs += "{name}\n{badge}\n{unit_description}\n{time}".format(
+    formatted_pigs = ["{name}\n{badge}\n{unit_description}\n{time}".format(
             name=pig[0]["full_name"],
             badge=pig[0]["badge"],
             unit_description=pig[0]["unit_description"],
             time=pig[1],
-        )
-    return "\n".join(formated_pigs)
+        ) for pig in pigs]
+    return "\n".join(formatted_pigs)
 
 
 def check_swat_calls() -> str:
