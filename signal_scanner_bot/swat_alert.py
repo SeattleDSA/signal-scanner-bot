@@ -32,7 +32,10 @@ def format_pigs(pigs: List) -> str:
     return "\n".join(formatted_pigs)
 
 
-def check_swat_calls() -> str:
+def check_swat_calls() -> Optional(str):
     calls = get_openmhz()
     pigs = get_pigs(calls)
-    return format_pigs(pigs)
+    if pigs:
+        return format_pigs(pigs)
+    else:
+        pass
