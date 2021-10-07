@@ -6,6 +6,7 @@ import click
 
 from signal_scanner_bot import env
 from signal_scanner_bot.transport import (
+    swat_alert,
     comradely_reminder,
     queue_to_signal,
     signal_to_twitter,
@@ -44,6 +45,7 @@ def cli(debug: bool = False) -> None:
             queue_to_signal(),
             twitter_to_queue(),
             comradely_reminder(),
+            swat_alert(),
             return_exceptions=True,
         )
     )

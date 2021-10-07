@@ -159,3 +159,11 @@ async def send_comradely_reminder() -> None:
         return
     log.info("Sending comradely message")
     signal.send_message(env.COMRADELY_MESSAGE, env.COMRADELY_CONTACT)
+
+
+async def send_swat_alert(message: str) -> None:
+    """Send a SWAT alert."""
+    if not env.SWAT_CONTACT:
+        return
+    log.info("Sending SWAT alert")
+    signal.send_message(message, env.SWAT_CONTACT)

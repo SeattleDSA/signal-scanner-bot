@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta
 import ujson
 from peony import events
 
-from . import env, messages, signal
+from . import env, messages, signal, swat_alert
 
 
 log = logging.getLogger(__name__)
@@ -129,6 +129,29 @@ async def comradely_reminder() -> None:
             # Wait at least 60 minutes for the next check
             log.debug("Waiting an hour...")
             await asyncio.sleep(60 * 60)
+    except Exception as err:
+        log.exception(err)
+        signal.panic(err)
+        raise
+
+
+################################################################################
+# SWAT Alert
+################################################################################
+async def swat_alert() -> None:
+    """Run the swat alert loop."""
+    # Wait for system to initialize
+    await asyncio.sleep(15)
+    try:
+        while True:
+            log.debug("Checking for SWAT activity.")
+            swat_alert_message = swat_alert.check_swat_calls()
+            if swat_alert_message:
+                log.info("SWAT activity found sending alert to group.")
+                messages.send_swat_alert(swat_alert_message)
+            # Wait a minute to poll again
+            log.debug("Sleeping for 1 minute before checking again.")
+            await asyncio.sleep(60)
     except Exception as err:
         log.exception(err)
         signal.panic(err)

@@ -137,7 +137,7 @@ def _format_hashtags(to_cast: str) -> List[str]:
 
 
 ################################################################################
-# Environment Variables
+# Scanner Environment Variables
 ################################################################################
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
@@ -160,6 +160,10 @@ AUTOSCAN_STATE_FILE_PATH = _env(
     convert=_cast_to_path,
     default="signal_scanner_bot/.autoscanner-state-file",
 )
+
+################################################################################
+# Comradely Reminder Environment Variables
+################################################################################
 COMRADELY_CONTACT = _env("COMRADELY_CONTACT", convert=_cast_to_string, fail=False)
 COMRADELY_MESSAGE = _env("COMRADELY_MESSAGE", convert=_cast_to_string, fail=False)
 COMRADELY_TIME = _env(
@@ -168,6 +172,14 @@ COMRADELY_TIME = _env(
     fail=False,
     default="20:00:00",  # 2pm PST
 )
+
+################################################################################
+# SWAT Alert Environment Variables
+################################################################################
+SWAT_OPENMHZ_URL = _env("SWAT_OPENMHZ_URL", convert=_cast_to_string, fail=False)
+SWAT_LOOKUP_URL = _env("SWAT_LOOKUP_URL", convert=_cast_to_string, fail=False)
+SWAT_UNITS = _env("SWAT_UNITS", convert=_cast_to_set, fail=False)
+SWAT_CONTACT = _env("SWAT_CONTACT", convert=_cast_to_string, fail=False)
 
 # Checking to ensure user ids are in the proper format, raise error if not.
 for tweeter in TRUSTED_TWEETERS:
