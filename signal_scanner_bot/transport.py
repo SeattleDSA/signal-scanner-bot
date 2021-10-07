@@ -150,7 +150,7 @@ async def swat_alert() -> None:
                 log.info("SWAT activity found sending alert to group.")
                 messages.send_swat_alert(swat_alert_message)
             # Wait a minute to poll again
-            log.debug("Sleeping for 1 minute before checking again.")
+            log.debug("Sleeping for 1 minute before checking for swat alerts again.")
             await asyncio.sleep(60)
     except Exception as err:
         log.exception(err)
