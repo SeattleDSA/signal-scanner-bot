@@ -30,7 +30,15 @@ def get_pigs(calls: Dict) -> Optional[List]:
             cops = requests.get(env.SWAT_LOOKUP_URL + api_radios)
             for cop in cops.json().values():
                 if [unit for unit in env.SWAT_UNITS if unit in cop["unit_description"]]:
-                    interesting_pigs.append((cop, time, call["url"]))
+                    # Convert time string to datetime after converting it into proper ISO format
+                    # Add timezone awareness (sourc is in UTC) then output in specified TZ and
+                    # 12 hour format
+                    time_dt = datetime.fromisoformat(time.replace("Z", "+00:00"))
+                    time_dt_tz = time_dt.replace(tzinfo=pytz.utc)
+                    time_formatted_in_tz = time_dt_tz.astimezone(env.SWAT_TZ).strftime(
+                        "%Y-%m-%d, %I:%M:%S %Z"
+                    )
+                    interesting_pigs.append((cop, time_formatted_in_tz, call["url"]))
     return interesting_pigs
 
 

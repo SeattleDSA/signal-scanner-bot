@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Callable, List, Optional, Set
 
 import peony
+import pytz
 
 
 log = logging.getLogger(__name__)
@@ -181,6 +182,10 @@ SWAT_LOOKUP_URL = _env("SWAT_LOOKUP_URL", convert=_cast_to_string, fail=False)
 SWAT_UNITS = _env("SWAT_UNITS", convert=_cast_to_set, fail=False)
 SWAT_CONTACT = _env("SWAT_CONTACT", convert=_cast_to_string, fail=False)
 SWAT_LOOKBACK = _env("SWAT_LOOKBACK", convert=_cast_to_int, fail=False, default=45)
+SWAT_TZ = _env("SWAT_TZ", convert=_cast_to_string, fail=False, default="US/Pacific")
+
+# Convert SWAT_TZ from string to pytz time zone
+SWAT_TZ = pytz.timezone(SWAT_TZ)
 
 # Check to make sure the lookback interval is greater than or equal to 45 seconds
 if SWAT_LOOKBACK < 45:
