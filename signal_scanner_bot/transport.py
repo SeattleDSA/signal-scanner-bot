@@ -138,15 +138,14 @@ async def comradely_reminder() -> None:
 ################################################################################
 # SWAT Alert
 ################################################################################
-async def swat_alert() -> None:
+async def swat_alert_transport() -> None:
     """Run the swat alert loop."""
     # Wait for system to initialize
     await asyncio.sleep(15)
     try:
         while True:
             log.debug("Checking for SWAT activity.")
-            swat_alert_message = swat_alert.check_swat_calls()
-            if swat_alert_message:
+            if swat_alert_message := swat_alert.check_swat_calls():
                 log.info("SWAT activity found sending alert to group.")
                 messages.send_swat_alert(swat_alert_message)
             # Wait a minute to poll again

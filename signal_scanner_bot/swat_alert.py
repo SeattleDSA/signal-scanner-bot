@@ -1,14 +1,16 @@
 from typing import Dict, List, Optional
+
 import requests
 
 from . import env
+
 
 def get_openmhz() -> Dict:
     response = requests.get(env.SWAT_OPENMHZ_URL)
     return response.json()["calls"]
 
 
-def get_pigs(calls: Dict) -> Optional(List):
+def get_pigs(calls: Dict) -> Optional[List]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
@@ -23,19 +25,21 @@ def get_pigs(calls: Dict) -> Optional(List):
 
 
 def format_pigs(pigs: List) -> str:
-    formatted_pigs = ["{name}\n{badge}\n{unit_description}\n{time}".format(
+    formatted_pigs = [
+        "{name}\n{badge}\n{unit_description}\n{time}".format(
             name=pig[0]["full_name"],
             badge=pig[0]["badge"],
             unit_description=pig[0]["unit_description"],
             time=pig[1],
-        ) for pig in pigs]
+        )
+        for pig in pigs
+    ]
     return "\n".join(formatted_pigs)
 
 
-def check_swat_calls() -> Optional(str):
+def check_swat_calls() -> Optional[str]:
     calls = get_openmhz()
     pigs = get_pigs(calls)
     if pigs:
         return format_pigs(pigs)
-    else:
-        pass
+    return None
