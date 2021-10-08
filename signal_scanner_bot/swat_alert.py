@@ -16,7 +16,7 @@ def get_pigs(calls: Dict) -> Optional[List]:
         time = call["time"]
         radios = {str(700000 + int(radio["src"])) for radio in call["srcList"]}
         if len(radios) > 0:
-            api_radios = "&radio=" + "&radio=".join(radios)
+            api_radios = "radio=" + "&radio=".join(radios)
             cops = requests.get(env.SWAT_LOOKUP_URL + api_radios)
             for cop in cops.json().values():
                 if [unit for unit in env.SWAT_UNITS if unit in cop["unit_description"]]:
