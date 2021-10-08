@@ -1,8 +1,12 @@
+import logging
 from typing import Dict, List, Optional
 
 import requests
 
 from . import env
+
+
+log = logging.getLogger(__name__)
 
 
 def get_openmhz() -> Dict:
@@ -41,5 +45,7 @@ def check_swat_calls() -> Optional[str]:
     calls = get_openmhz()
     pigs = get_pigs(calls)
     if pigs:
+        log.debug("Too lazy to figure out typing just logging pigs out below.")
+        log.debug(pigs)
         return format_pigs(pigs)
     return None
