@@ -180,6 +180,15 @@ SWAT_OPENMHZ_URL = _env("SWAT_OPENMHZ_URL", convert=_cast_to_string, fail=False)
 SWAT_LOOKUP_URL = _env("SWAT_LOOKUP_URL", convert=_cast_to_string, fail=False)
 SWAT_UNITS = _env("SWAT_UNITS", convert=_cast_to_set, fail=False)
 SWAT_CONTACT = _env("SWAT_CONTACT", convert=_cast_to_string, fail=False)
+SWAT_LOOKBACK = _env("SWAT_LOOKBACK", convert=_cast_to_int, fail=False, default=45)
+
+# Check to make sure the lookback interval is greater than or equal to 45 seconds
+if SWAT_LOOKBACK < 45:
+    log.warning(
+        f"The minimum value for the lookback time is 45 seconds. Time of {SWAT_LOOKBACK}"
+        " second(s) is less than 45 seconds and will be set to 45 seconds automatically."
+    )
+    SWAT_LOOKBACK = 45
 
 # Checking to ensure user ids are in the proper format, raise error if not.
 for tweeter in TRUSTED_TWEETERS:

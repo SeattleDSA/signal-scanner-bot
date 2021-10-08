@@ -147,10 +147,11 @@ async def swat_alert_transport() -> None:
             log.debug("Checking for SWAT activity.")
             if swat_alert_message := swat_alert.check_swat_calls():
                 log.info("SWAT activity found sending alert to group.")
-                messages.send_swat_alert(swat_alert_message)
+                for alert in swat_alert_message:
+                    await messages.send_swat_alert(alert[0], alert[1])
             # Wait a minute to poll again
             log.debug("Sleeping for 1 minute before checking for swat alerts again.")
-            await asyncio.sleep(60)
+            await asyncio.sleep(env.SWAT_LOOKBACK)
     except Exception as err:
         log.exception(err)
         signal.panic(err)

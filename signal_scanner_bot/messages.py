@@ -1,9 +1,12 @@
 import logging
+import pathlib
 import re
+import shutil
 from textwrap import dedent
 from typing import Callable, Dict, List, TypeVar
 
 import peony
+import requests
 
 from . import env, signal, twitter
 from .filters import SIGNAL_FILTERS, TWITTER_FILTERS
@@ -161,9 +164,22 @@ async def send_comradely_reminder() -> None:
     signal.send_message(env.COMRADELY_MESSAGE, env.COMRADELY_CONTACT)
 
 
-async def send_swat_alert(message: str) -> None:
+async def send_swat_alert(message: str, audio_url: str) -> None:
     """Send a SWAT alert."""
     if not env.SWAT_CONTACT:
         return
     log.info("Sending SWAT alert")
-    signal.send_message(message, env.SWAT_CONTACT)
+    pathlib.Path("/audio").mkdir(exist_ok=True)
+    local_filename = "/audio/" + audio_url.split("/")[-1]
+    log.debug(f"Saving audio file to {local_filename}")
+    with requests.get(audio_url, stream=True) as r:
+        with open(local_filename, "wb") as f:
+            shutil.copyfileobj(r.raw, f)
+    log.debug("File successfully downloaded!")
+
+    signal.send_message(message, env.SWAT_CONTACT, attachment=local_filename)
+
+    log.debug(f"Deleting audio file at {local_filename}")
+    file_to_rem = pathlib.Path(local_filename)
+    file_to_rem.unlink(missing_ok=True)
+    log.debug("File successfully deleted!")

@@ -95,3 +95,4 @@ repos:
             - types-click
             - types-ujson
             - types-requests
+            - types-pytz
