@@ -143,7 +143,7 @@ def _format_hashtags(to_cast: str) -> List[str]:
 # I don't notice I'm doing a bit of an "inelegant" fix to make sure it doesn't
 # matter.
 BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
-BOT_NUMBER = BOT_NUMBER.encode('ascii', 'ignore').decode('utf-8')
+BOT_NUMBER = BOT_NUMBER.encode("ascii", "ignore").decode("utf-8")
 
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
