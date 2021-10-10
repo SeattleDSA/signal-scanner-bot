@@ -139,9 +139,14 @@ def _format_hashtags(to_cast: str) -> List[str]:
 ################################################################################
 # Environment Variables
 ################################################################################
+# Because sometimes I get zero width unicode characters in my copy/pastes that
+# I don't notice I'm doing a bit of an "inelegant" fix to make sure it doesn't
+# matter.
+BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
+BOT_NUMBER = BOT_NUMBER.encode('ascii', 'ignore').decode('utf-8')
+
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
-BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
 ADMIN_CONTACT = _env("ADMIN_CONTACT", convert=_cast_to_string)
 LISTEN_CONTACT = _env("LISTEN_CONTACT", convert=_cast_to_string, fail=False)
 SIGNAL_TIMEOUT = _env("SIGNAL_TIMEOUT", convert=_cast_to_int, default=10)
