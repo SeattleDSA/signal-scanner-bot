@@ -170,16 +170,15 @@ async def send_swat_alert(message: str, audio_url: str) -> None:
         return
     log.info("Sending SWAT alert")
     pathlib.Path("/audio").mkdir(exist_ok=True)
-    local_filename = "/audio/" + audio_url.split("/")[-1]
-    log.debug(f"Saving audio file to {local_filename}")
+    local_path_file = pathlib.Path("/audio/" + audio_url.split("/")[-1])
+    log.debug(f"Saving audio file to {local_path_file}")
     with requests.get(audio_url, stream=True) as r:
-        with open(local_filename, "wb") as f:
+        with open(local_path_file, "wb") as f:
             shutil.copyfileobj(r.raw, f)
     log.debug("File successfully downloaded!")
 
-    signal.send_message(message, env.RADIO_MONITOR_CONTACT, attachment=local_filename)
+    signal.send_message(message, env.RADIO_MONITOR_CONTACT, attachment=local_path_file)
 
-    log.debug(f"Deleting audio file at {local_filename}")
-    file_to_rem = pathlib.Path(local_filename)
-    file_to_rem.unlink(missing_ok=True)
+    log.debug(f"Deleting audio file at {local_path_file}")
+    local_path_file.unlink(missing_ok=True)
     log.debug("File successfully deleted!")
