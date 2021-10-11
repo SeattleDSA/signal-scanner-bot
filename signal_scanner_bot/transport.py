@@ -144,13 +144,14 @@ async def swat_alert_transport() -> None:
     await asyncio.sleep(15)
     try:
         while True:
-            log.debug("Checking for SWAT activity.")
+            log.debug("Checking for monitored units' radio activity.")
             if swat_alert_message := swat_alert.check_swat_calls():
-                log.info("SWAT activity found sending alert to group.")
+                log.info("Radio activity found for monitored units sending alert to group.")
+                log.debug(f"Monitored units are {env.RADIO_MONITOR_UNITS}")
                 for message, audio in swat_alert_message:
                     await messages.send_swat_alert(message, audio)
             # Wait a minute to poll again
-            log.debug("Sleeping for 1 minute before checking for swat alerts again.")
+            log.debug(f"Sleeping for {env.SWAT_LOOKBACK}s before checking for monitored unit alerts again.")
             await asyncio.sleep(env.RADIO_MONITOR_LOOKBACK)
     except Exception as err:
         log.exception(err)
