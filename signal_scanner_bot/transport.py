@@ -151,7 +151,7 @@ async def swat_alert_transport() -> None:
                     await messages.send_swat_alert(alert[0], alert[1])
             # Wait a minute to poll again
             log.debug("Sleeping for 1 minute before checking for swat alerts again.")
-            await asyncio.sleep(env.SWAT_LOOKBACK)
+            await asyncio.sleep(env.RADIO_MONITOR_LOOKBACK)
     except Exception as err:
         log.exception(err)
         signal.panic(err)

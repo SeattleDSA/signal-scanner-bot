@@ -166,7 +166,7 @@ async def send_comradely_reminder() -> None:
 
 async def send_swat_alert(message: str, audio_url: str) -> None:
     """Send a SWAT alert."""
-    if not env.SWAT_CONTACT:
+    if not env.RADIO_MONITOR_CONTACT:
         return
     log.info("Sending SWAT alert")
     pathlib.Path("/audio").mkdir(exist_ok=True)
@@ -177,7 +177,7 @@ async def send_swat_alert(message: str, audio_url: str) -> None:
             shutil.copyfileobj(r.raw, f)
     log.debug("File successfully downloaded!")
 
-    signal.send_message(message, env.SWAT_CONTACT, attachment=local_filename)
+    signal.send_message(message, env.RADIO_MONITOR_CONTACT, attachment=local_filename)
 
     log.debug(f"Deleting audio file at {local_filename}")
     file_to_rem = pathlib.Path(local_filename)

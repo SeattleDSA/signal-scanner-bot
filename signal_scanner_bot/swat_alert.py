@@ -12,11 +12,11 @@ log = logging.getLogger(__name__)
 
 
 def get_openmhz() -> Dict:
-    time = datetime.now(pytz.utc) - timedelta(seconds=(env.SWAT_LOOKBACK))
+    time = datetime.now(pytz.utc) - timedelta(seconds=(env.RADIO_MONITOR_LOOKBACK))
     strArray = str(time.timestamp()).split(".")
     lookback_time = strArray[0] + strArray[1][:3]
     log.debug(f"Lookback is currently set to: {lookback_time}")
-    response = requests.get(env.SWAT_OPENMHZ_URL + f"&time={lookback_time}")
+    response = requests.get(env.OPENMHZ_URL + f"&time={lookback_time}")
     return response.json()["calls"]
 
 
@@ -27,9 +27,9 @@ def get_pigs(calls: Dict) -> Optional[List]:
         radios = {str(700000 + int(radio["src"])) for radio in call["srcList"]}
         if len(radios) > 0:
             api_radios = "radio=" + "&radio=".join(radios)
-            cops = requests.get(env.SWAT_LOOKUP_URL + api_radios)
+            cops = requests.get(env.RADIO_CHASER_URL + api_radios)
             for cop in cops.json().values():
-                if [unit for unit in env.SWAT_UNITS if unit in cop["unit_description"]]:
+                if [unit for unit in env.RADIO_MONITOR_UNITS if unit in cop["unit_description"]]:
                     # Convert time string to datetime after converting it into proper ISO format
                     # Add timezone awareness (sourc is in UTC) then output in specified TZ and
                     # 12 hour format
