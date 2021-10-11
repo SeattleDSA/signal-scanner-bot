@@ -147,8 +147,8 @@ async def swat_alert_transport() -> None:
             log.debug("Checking for SWAT activity.")
             if swat_alert_message := swat_alert.check_swat_calls():
                 log.info("SWAT activity found sending alert to group.")
-                for alert in swat_alert_message:
-                    await messages.send_swat_alert(alert[0], alert[1])
+                for message, audio in swat_alert_message:
+                    await messages.send_swat_alert(message, audio)
             # Wait a minute to poll again
             log.debug("Sleeping for 1 minute before checking for swat alerts again.")
             await asyncio.sleep(env.RADIO_MONITOR_LOOKBACK)
