@@ -35,7 +35,7 @@ def get_pigs(calls: Dict) -> Optional[List]:
                     # 12 hour format
                     time_dt = datetime.fromisoformat(time.replace("Z", "+00:00"))
                     time_dt_tz = time_dt.replace(tzinfo=pytz.utc)
-                    time_formatted_in_tz = time_dt_tz.astimezone(env.SWAT_TZ).strftime(
+                    time_formatted_in_tz = time_dt_tz.astimezone(env.DEFAULT_TZ).strftime(
                         "%Y-%m-%d, %I:%M:%S %Z"
                     )
                     interesting_pigs.append((cop, time_formatted_in_tz, call["url"]))

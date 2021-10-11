@@ -1,7 +1,7 @@
 import logging
 import os
 from asyncio import Queue
-from datetime import time
+from datetime import time, tzinfo
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Set
 
@@ -125,6 +125,10 @@ def _cast_to_time(to_cast: str) -> time:
     return time.fromisoformat(to_cast)
 
 
+def _cast_to_tzinfo(to_cast: str) -> tzinfo:
+    return pytz.timezone(to_cast)
+
+
 def _format_hashtags(to_cast: str) -> List[str]:
     hashtags = _cast_to_list(to_cast)
     if any("#" in hashtag for hashtag in hashtags):
@@ -140,6 +144,7 @@ def _format_hashtags(to_cast: str) -> List[str]:
 ################################################################################
 # Scanner Environment Variables
 ################################################################################
+DEFAULT_TZ = _env("DEFAULT_TZ", convert=_cast_to_tzinfo, fail=False, default="US/Pacific")
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
 BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
