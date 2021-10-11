@@ -11,57 +11,68 @@ from . import env
 log = logging.getLogger(__name__)
 
 
-def get_openmhz() -> Dict:
+def _convert_to_timestr(in_time: str) -> str:
+    # Convert time string to datetime after converting it into proper ISO format
+    # Add timezone awareness (source is in UTC) then output in specified TZ and
+    # 12 hour format
+    time_dt = datetime.fromisoformat(in_time.replace("Z", "+00:00"))
+    time_dt_tz = time_dt.replace(tzinfo=pytz.utc)
+    return time_dt_tz.astimezone(env.DEFAULT_TZ).strftime("%Y-%m-%d, %I:%M:%S %Z")
+
+
+def _calculate_lookback_time() -> str:
+    # Because time.timestamp() gives us time in the format 1633987202.136147 and
+    # we want it in the format 1633987202136 we need to do some str manipulation.
+    # First we get the current time in UTC, subtract a time delta equal to the
+    # specified number of seconds defined in the RADIO_MONITOR_LOOKBACK, split
+    # that timestamp on the decimal, then rejoin the str with the first three
+    # numbers after the decimal.
     time = datetime.now(pytz.utc) - timedelta(seconds=(env.RADIO_MONITOR_LOOKBACK))
-    strArray = str(time.timestamp()).split(".")
-    lookback_time = strArray[0] + strArray[1][:3]
+    time_stamp_array = str(time.timestamp()).split(".")
+    return time_stamp_array[0] + time_stamp_array[1][:3]
+
+
+def get_openmhz_calls() -> Dict:
+    lookback_time = _calculate_lookback_time()
     log.debug(f"Lookback is currently set to: {lookback_time}")
-    response = requests.get(env.OPENMHZ_URL + f"&time={lookback_time}")
+    response = requests.get(env.OPENMHZ_URL, params={"time": lookback_time})
     return response.json()["calls"]
 
 
-def get_pigs(calls: List[Dict]) -> Optional[List]:
+def get_pigs(calls: List[Dict]) -> List[Tuple[Dict, str, str]]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
-        radios = {str(700000 + int(radio["src"])) for radio in call["srcList"]}
-        if len(radios) > 0:
-            api_radios = "radio=" + "&radio=".join(radios)
-            cops = requests.get(env.RADIO_CHASER_URL + api_radios)
-            for cop in cops.json().values():
-                if [unit for unit in env.RADIO_MONITOR_UNITS if unit in cop["unit_description"]]:
-                    # Convert time string to datetime after converting it into proper ISO format
-                    # Add timezone awareness (sourc is in UTC) then output in specified TZ and
-                    # 12 hour format
-                    time_dt = datetime.fromisoformat(time.replace("Z", "+00:00"))
-                    time_dt_tz = time_dt.replace(tzinfo=pytz.utc)
-                    time_formatted_in_tz = time_dt_tz.astimezone(env.DEFAULT_TZ).strftime(
-                        "%Y-%m-%d, %I:%M:%S %Z"
-                    )
-                    interesting_pigs.append((cop, time_formatted_in_tz, call["url"]))
+        radios = radios = {f"7{radio['src']:0>5}" for radio in call["srcList"]}
+        if not len(radios):
+            continue
+        cops = requests.get(env.RADIO_CHASER_URL, params={"radios": radios})
+        for cop in cops.json().values():
+            if cop["unit_description"] not in env.RADIO_MONITOR_UNITS:
+                continue
+            time_formatted_in_tz = _convert_to_timestr(time)
+            interesting_pigs.append((cop, time_formatted_in_tz, call["url"]))
     return interesting_pigs
 
 
-def format_pigs(pigs: List) -> List[Tuple[str, str]]:
-    return [
-        (
-            "{name}\n{badge}\n{unit_description}\n{time}".format(
-                name=pig[0]["full_name"],
-                badge=pig[0]["badge"],
-                unit_description=pig[0]["unit_description"],
-                time=pig[1],
-            ),
-            pig[2],
+def format_pigs(pigs: List[Tuple[Dict, str, str]]) -> List[Tuple[str, str]]:
+    formatted_pigs = []
+    for pig in pigs:
+        name, badge, unit_description, time = (
+            pig[0]["full_name"],
+            pig[0]["full_name"],
+            pig[0]["unit_description"],
+            pig[1],
         )
-        for pig in pigs
-    ]
+        formatted_pigs.append(f"{name}\n{badge}\n{unit_description}\n{time}")
+    return formatted_pigs
 
 
 def check_swat_calls() -> Optional[List[Tuple[str, str]]]:
-    calls = get_openmhz()
+    calls = get_openmhz_calls()
     pigs = get_pigs(calls)
-    if pigs:
-        log.debug("Too lazy to figure out typing just logging pigs out below.")
-        log.debug(pigs)
-        return format_pigs(pigs)
-    return None
+    if not pigs:
+        return None
+    log.debug("Too lazy to figure out typing just logging pigs out below.")
+    log.debug(pigs)
+    return format_pigs(pigs)
