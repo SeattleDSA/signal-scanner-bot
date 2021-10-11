@@ -81,12 +81,11 @@ def trust_identity(phone_number: str, safety_number: str):
         log.error(f"Trust call return code: {proc.returncode}")
 
 
-def send_message(message: str, recipient: str, **kwargs):
+def send_message(message: str, recipient: str, attachment=None):
     """High level function to send a Signal message to a specified recipient."""
     group = _check_group(recipient)
     recipient_args = ["-g", recipient] if group else [recipient]
 
-    attachment = kwargs.get("attachment", None)
     attachement_args = ["-a", attachment] if attachment else []
 
     log.debug("Sending message")
