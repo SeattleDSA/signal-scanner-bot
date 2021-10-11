@@ -112,6 +112,10 @@ def _cast_to_string(to_cast: str) -> str:
         return ""
 
 
+def _cast_to_ascii(to_cast: str) -> str:
+    return _cast_to_string(to_cast).encode("ascii", "ignore").decode("utf-8")
+
+
 def _cast_to_int(to_cast: str) -> int:
     return int(to_cast)
 
@@ -142,8 +146,7 @@ def _format_hashtags(to_cast: str) -> List[str]:
 # Because sometimes I get zero width unicode characters in my copy/pastes that
 # I don't notice I'm doing a bit of an "inelegant" fix to make sure it doesn't
 # matter.
-BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
-BOT_NUMBER = BOT_NUMBER.encode("ascii", "ignore").decode("utf-8")
+BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_ascii)
 
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
