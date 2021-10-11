@@ -144,7 +144,9 @@ def _format_hashtags(to_cast: str) -> List[str]:
 ################################################################################
 # Scanner Environment Variables
 ################################################################################
-DEFAULT_TZ = _env("DEFAULT_TZ", convert=_cast_to_tzinfo, fail=False, default="US/Pacific")
+DEFAULT_TZ = _env(
+    "DEFAULT_TZ", convert=_cast_to_tzinfo, fail=False, default="US/Pacific"
+)
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
 BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_string)
@@ -185,8 +187,12 @@ COMRADELY_TIME = _env(
 OPENMHZ_URL = _env("OPENMHZ_URL", convert=_cast_to_string, fail=False)
 RADIO_CHASER_URL = _env("RADIO_CHASER_URL", convert=_cast_to_string, fail=False)
 RADIO_MONITOR_UNITS = _env("RADIO_MONITOR_UNITS", convert=_cast_to_set, fail=False)
-RADIO_MONITOR_CONTACT = _env("RADIO_MONITOR_CONTACT", convert=_cast_to_string, fail=False)
-RADIO_MONITOR_LOOKBACK = _env("RADIO_MONITOR_LOOKBACK", convert=_cast_to_int, fail=False, default=45)
+RADIO_MONITOR_CONTACT = _env(
+    "RADIO_MONITOR_CONTACT", convert=_cast_to_string, fail=False
+)
+RADIO_MONITOR_LOOKBACK = _env(
+    "RADIO_MONITOR_LOOKBACK", convert=_cast_to_int, fail=False, default=45
+)
 
 # Check to make sure the lookback interval is greater than or equal to 45 seconds
 if RADIO_MONITOR_LOOKBACK < 45:
