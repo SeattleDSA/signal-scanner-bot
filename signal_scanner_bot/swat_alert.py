@@ -20,7 +20,7 @@ def get_openmhz() -> Dict:
     return response.json()["calls"]
 
 
-def get_pigs(calls: Dict) -> Optional[List]:
+def get_pigs(calls: List[Dict]) -> Optional[List]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
