@@ -1,11 +1,12 @@
 import logging
 import os
 from asyncio import Queue
-from datetime import time
+from datetime import time, tzinfo
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Set
 
 import peony
+import pytz
 
 
 log = logging.getLogger(__name__)
@@ -128,6 +129,10 @@ def _cast_to_time(to_cast: str) -> time:
     return time.fromisoformat(to_cast)
 
 
+def _cast_to_tzinfo(to_cast: str) -> tzinfo:
+    return pytz.timezone(to_cast)
+
+
 def _format_hashtags(to_cast: str) -> List[str]:
     hashtags = _cast_to_list(to_cast)
     if any("#" in hashtag for hashtag in hashtags):
@@ -141,13 +146,15 @@ def _format_hashtags(to_cast: str) -> List[str]:
 
 
 ################################################################################
-# Environment Variables
+# Scanner Environment Variables
 ################################################################################
 # Because sometimes I get zero width unicode characters in my copy/pastes that
 # I don't notice I'm doing a bit of an "inelegant" fix to make sure it doesn't
 # matter.
 BOT_NUMBER = _env("BOT_NUMBER", convert=_cast_to_ascii)
-
+DEFAULT_TZ = _env(
+    "DEFAULT_TZ", convert=_cast_to_tzinfo, fail=False, default="US/Pacific"
+)
 TESTING = _env("TESTING", convert=_cast_to_bool, default=False)
 DEBUG = TESTING or _env("DEBUG", convert=_cast_to_bool, default=False)
 ADMIN_CONTACT = _env("ADMIN_CONTACT", convert=_cast_to_string)
@@ -168,6 +175,10 @@ AUTOSCAN_STATE_FILE_PATH = _env(
     convert=_cast_to_path,
     default="signal_scanner_bot/.autoscanner-state-file",
 )
+
+################################################################################
+# Comradely Reminder Environment Variables
+################################################################################
 COMRADELY_CONTACT = _env("COMRADELY_CONTACT", convert=_cast_to_string, fail=False)
 COMRADELY_MESSAGE = _env("COMRADELY_MESSAGE", convert=_cast_to_string, fail=False)
 COMRADELY_TIME = _env(
@@ -176,6 +187,30 @@ COMRADELY_TIME = _env(
     fail=False,
     default="20:00:00",  # 2pm PST
 )
+
+################################################################################
+# SWAT Alert Environment Variables
+################################################################################
+OPENMHZ_URL = _env("OPENMHZ_URL", convert=_cast_to_string, fail=False)
+RADIO_CHASER_URL = _env("RADIO_CHASER_URL", convert=_cast_to_string, fail=False)
+RADIO_MONITOR_UNITS = _env("RADIO_MONITOR_UNITS", convert=_cast_to_set, fail=False)
+RADIO_MONITOR_CONTACT = _env(
+    "RADIO_MONITOR_CONTACT", convert=_cast_to_string, fail=False
+)
+RADIO_MONITOR_LOOKBACK = _env(
+    "RADIO_MONITOR_LOOKBACK", convert=_cast_to_int, fail=False, default=45
+)
+RADIO_AUDIO_CHUNK_SIZE = _env(
+    "RADIO_AUDIO_CHUNK_SIZE", convert=_cast_to_int, fail=False, default=10
+)
+
+# Check to make sure the lookback interval is greater than or equal to 45 seconds
+if RADIO_MONITOR_LOOKBACK < 45:
+    log.warning(
+        f"The minimum value for the lookback time is 45 seconds. Time of {RADIO_MONITOR_LOOKBACK}"
+        " second(s) is less than 45 seconds and will be set to 45 seconds automatically."
+    )
+    RADIO_MONITOR_LOOKBACK = 45
 
 # Checking to ensure user ids are in the proper format, raise error if not.
 for tweeter in TRUSTED_TWEETERS:

@@ -94,3 +94,6 @@ repos:
           additional_dependencies:
             - types-click
             - types-ujson
+            - types-requests
+            - types-pytz
+            - types-aiofiles

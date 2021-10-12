@@ -1,8 +1,11 @@
 import logging
+import pathlib
 import re
 from textwrap import dedent
 from typing import Callable, Dict, List, TypeVar
 
+import aiofiles
+import aiohttp
 import peony
 
 from . import env, signal, twitter
@@ -159,3 +162,28 @@ async def send_comradely_reminder() -> None:
         return
     log.info("Sending comradely message")
     signal.send_message(env.COMRADELY_MESSAGE, env.COMRADELY_CONTACT)
+
+
+async def send_radio_monitor_alert(message: str, audio_url: str) -> None:
+    """Send a SWAT alert."""
+    if not env.RADIO_MONITOR_CONTACT:
+        return
+    log.info("Sending SWAT alert")
+    pathlib.Path("/audio").mkdir(exist_ok=True)
+    local_path_file = pathlib.Path("/audio/" + audio_url.split("/")[-1])
+    log.debug(f"Saving audio file to {local_path_file}")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(audio_url) as response:
+            async with aiofiles.open(local_path_file, "wb") as file_download:
+                while True:
+                    chunk = await response.content.read(env.RADIO_AUDIO_CHUNK_SIZE)
+                    if not chunk:
+                        break
+                    await file_download.write(chunk)
+    log.debug("File successfully downloaded!")
+
+    signal.send_message(message, env.RADIO_MONITOR_CONTACT, attachment=local_path_file)
+
+    log.debug(f"Deleting audio file at {local_path_file}")
+    local_path_file.unlink(missing_ok=True)
+    log.debug("File successfully deleted!")

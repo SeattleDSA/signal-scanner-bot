@@ -8,6 +8,7 @@ from signal_scanner_bot import env
 from signal_scanner_bot.transport import (
     comradely_reminder,
     queue_to_signal,
+    radio_monitor_alert_transport,
     signal_to_twitter,
     twitter_to_queue,
 )
@@ -44,6 +45,7 @@ def cli(debug: bool = False) -> None:
             queue_to_signal(),
             twitter_to_queue(),
             comradely_reminder(),
+            radio_monitor_alert_transport(),
             return_exceptions=True,
         )
     )
