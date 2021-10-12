@@ -39,7 +39,7 @@ def get_openmhz_calls() -> Dict:
     return response.json()["calls"]
 
 
-def get_pigs(calls: List[Dict]) -> List[Tuple[Dict, str, str]]:
+def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
@@ -50,7 +50,10 @@ def get_pigs(calls: List[Dict]) -> List[Tuple[Dict, str, str]]:
         log.debug(f"URL requested: {cops.url}")
         log.debug(f"List of cops returned by radio-chaser:\n{cops.json()}")
         for cop in cops.json().values():
-            if all(unit.lower() not in cop["unit_description"].lower() for unit in env.RADIO_MONITOR_UNITS):
+            if all(
+                unit.lower() not in cop["unit_description"].lower()
+                for unit in env.RADIO_MONITOR_UNITS
+            ):
                 log.debug(f"{cop}\nUnit not found in list of monitored units.")
                 continue
             log.debug(f"{cop}\nUnit found in list of monitored units.")

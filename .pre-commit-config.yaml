@@ -96,3 +96,4 @@ repos:
             - types-ujson
             - types-requests
             - types-pytz
+            - types-aiofiles

@@ -3,12 +3,10 @@ import aiohttp
 import logging
 import pathlib
 import re
-import shutil
 from textwrap import dedent
 from typing import Callable, Dict, List, TypeVar
 
 import peony
-import requests
 
 from . import env, signal, twitter
 from .filters import SIGNAL_FILTERS, TWITTER_FILTERS
@@ -176,7 +174,7 @@ async def send_radio_monitor_alert(message: str, audio_url: str) -> None:
     log.debug(f"Saving audio file to {local_path_file}")
     async with aiohttp.ClientSession() as session:
         async with session.get(audio_url) as response:
-            async with aiofiles.open(local_path_file, 'wb') as file_download:
+            async with aiofiles.open(local_path_file, "wb") as file_download:
                 while True:
                     chunk = await response.content.read(env.RADIO_AUDIO_CHUNK_SIZE)
                     if not chunk:
