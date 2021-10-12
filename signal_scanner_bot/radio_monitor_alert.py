@@ -64,14 +64,14 @@ def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
 
 def format_pigs(pigs: List[Tuple[Dict, str, str]]) -> List[Tuple[str, str]]:
     formatted_pigs = []
-    for pig in pigs:
+    for cop, time, url in pigs:
         name, badge, unit_description, time = (
-            pig[0]["full_name"],
-            pig[0]["badge"],
-            pig[0]["unit_description"],
-            pig[1],
+            cop["full_name"],
+            cop["badge"],
+            cop["unit_description"],
+            time,
         )
-        formatted_pigs.append((f"{name}\n{badge}\n{unit_description}\n{time}", pig[2]))
+        formatted_pigs.append((f"{name}\n{badge}\n{unit_description}\n{time}", url))
     return formatted_pigs
 
 
