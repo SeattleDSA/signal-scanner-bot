@@ -64,7 +64,7 @@ def format_pigs(pigs: List[Tuple[Dict, str, str]]) -> List[Tuple[str, str]]:
     for pig in pigs:
         name, badge, unit_description, time = (
             pig[0]["full_name"],
-            pig[0]["full_name"],
+            pig[0]["badge"],
             pig[0]["unit_description"],
             pig[1],
         )
