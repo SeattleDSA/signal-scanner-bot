@@ -72,7 +72,7 @@ async def signal_to_twitter():
     try:
         while not env.STATE.STOP_REQUESTED:
             proc = await asyncio.create_subprocess_shell(
-                f"signal-cli -u {env.BOT_NUMBER} receive --json -t {env.SIGNAL_TIMEOUT}",
+                f"signal-cli -u {env.BOT_NUMBER} --output=json receive -t {env.SIGNAL_TIMEOUT}",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
