@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta
 import ujson
 from peony import events
 
-from . import env, messages, signal, swat_alert
+from . import env, messages, signal, radio_monitor_alert
 
 
 log = logging.getLogger(__name__)
@@ -138,22 +138,23 @@ async def comradely_reminder() -> None:
 ################################################################################
 # SWAT Alert
 ################################################################################
-async def swat_alert_transport() -> None:
-    """Run the swat alert loop."""
+async def radio_monitor_alert_transport() -> None:
+    """Run the radio monitor alert loop."""
     # Wait for system to initialize
     await asyncio.sleep(15)
-    try:
-        while True:
+    while True:
+        try:
             log.debug("Checking for monitored units' radio activity.")
-            if swat_alert_message := swat_alert.check_swat_calls():
+            if radio_monitor_alert_messages := radio_monitor_alert.check_radio_calls():
                 log.info("Radio activity found for monitored units sending alert to group.")
                 log.debug(f"Monitored units are {env.RADIO_MONITOR_UNITS}")
-                for message, audio in swat_alert_message:
-                    await messages.send_swat_alert(message, audio)
+                log.debug(f"Alert messages to be sent:\n{radio_monitor_alert_messages}")
+                for message, audio in radio_monitor_alert_messages:
+                    await messages.send_radio_monitor_alert(message, audio)
             # Wait a minute to poll again
-            log.debug(f"Sleeping for {env.SWAT_LOOKBACK}s before checking for monitored unit alerts again.")
+            log.debug(f"Sleeping for {env.RADIO_MONITOR_LOOKBACK}s before checking for monitored unit alerts again.")
             await asyncio.sleep(env.RADIO_MONITOR_LOOKBACK)
-    except Exception as err:
-        log.exception(err)
-        signal.panic(err)
-        raise
+        except Exception as err:
+            log.exception(err)
+            signal.panic(err)
+            raise

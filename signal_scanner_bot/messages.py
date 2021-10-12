@@ -1,3 +1,5 @@
+import aiofiles
+import aiohttp
 import logging
 import pathlib
 import re
@@ -164,7 +166,7 @@ async def send_comradely_reminder() -> None:
     signal.send_message(env.COMRADELY_MESSAGE, env.COMRADELY_CONTACT)
 
 
-async def send_swat_alert(message: str, audio_url: str) -> None:
+async def send_radio_monitor_alert(message: str, audio_url: str) -> None:
     """Send a SWAT alert."""
     if not env.RADIO_MONITOR_CONTACT:
         return
@@ -172,9 +174,14 @@ async def send_swat_alert(message: str, audio_url: str) -> None:
     pathlib.Path("/audio").mkdir(exist_ok=True)
     local_path_file = pathlib.Path("/audio/" + audio_url.split("/")[-1])
     log.debug(f"Saving audio file to {local_path_file}")
-    with requests.get(audio_url, stream=True) as r:
-        with open(local_path_file, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(audio_url) as response:
+            async with aiofiles.open(local_path_file, 'wb') as file_download:
+                while True:
+                    chunk = await response.content.read(env.RADIO_AUDIO_CHUNK_SIZE)
+                    if not chunk:
+                        break
+                    await file_download.write(chunk)
     log.debug("File successfully downloaded!")
 
     signal.send_message(message, env.RADIO_MONITOR_CONTACT, attachment=local_path_file)

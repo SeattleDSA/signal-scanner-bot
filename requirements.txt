@@ -1,3 +1,5 @@
+aiofiles>=0.7.0
+aiohttp>=3.7.4
 Click==7.1.2
 peony-twitter==2.0.2
 pre-commit==2.9.0

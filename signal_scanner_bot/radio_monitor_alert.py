@@ -46,10 +46,14 @@ def get_pigs(calls: List[Dict]) -> List[Tuple[Dict, str, str]]:
         radios = radios = {f"7{radio['src']:0>5}" for radio in call["srcList"]}
         if not len(radios):
             continue
-        cops = requests.get(env.RADIO_CHASER_URL, params={"radios": radios})
+        cops = requests.get(env.RADIO_CHASER_URL, params={"radio": radios})
+        log.debug(f"URL requested: {cops.url}")
+        log.debug(f"List of cops returned by radio-chaser:\n{cops.json()}")
         for cop in cops.json().values():
-            if cop["unit_description"] not in env.RADIO_MONITOR_UNITS:
+            if all(unit.lower() not in cop["unit_description"].lower() for unit in env.RADIO_MONITOR_UNITS):
+                log.debug(f"{cop}\nUnit not found in list of monitored units.")
                 continue
+            log.debug(f"{cop}\nUnit found in list of monitored units.")
             time_formatted_in_tz = _convert_to_timestr(time)
             interesting_pigs.append((cop, time_formatted_in_tz, call["url"]))
     return interesting_pigs
@@ -64,15 +68,15 @@ def format_pigs(pigs: List[Tuple[Dict, str, str]]) -> List[Tuple[str, str]]:
             pig[0]["unit_description"],
             pig[1],
         )
-        formatted_pigs.append(f"{name}\n{badge}\n{unit_description}\n{time}")
+        formatted_pigs.append((f"{name}\n{badge}\n{unit_description}\n{time}", pig[2]))
     return formatted_pigs
 
 
-def check_swat_calls() -> Optional[List[Tuple[str, str]]]:
+def check_radio_calls() -> Optional[List[Tuple[str, str]]]:
     calls = get_openmhz_calls()
+    log.debug(f"Calls from OpenMHz:\n{calls}")
     pigs = get_pigs(calls)
     if not pigs:
         return None
-    log.debug("Too lazy to figure out typing just logging pigs out below.")
-    log.debug(pigs)
+    log.debug(f"Interesting pigs found\n{pigs}")
     return format_pigs(pigs)
