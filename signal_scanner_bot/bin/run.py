@@ -5,14 +5,9 @@ import logging
 import click
 
 from signal_scanner_bot import env
-from signal_scanner_bot.transport import (
-    comradely_reminder,
-    queue_to_signal,
-    signal_to_twitter,
-    radio_monitor_alert_transport,
-    twitter_to_queue,
-)
-
+from signal_scanner_bot.transport import (comradely_reminder, queue_to_signal,
+                                          radio_monitor_alert_transport,
+                                          signal_to_twitter, twitter_to_queue)
 
 log = logging.getLogger(__name__)
 

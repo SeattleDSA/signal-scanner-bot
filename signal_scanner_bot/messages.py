@@ -1,16 +1,15 @@
-import aiofiles
-import aiohttp
 import logging
 import pathlib
 import re
 from textwrap import dedent
 from typing import Callable, Dict, List, TypeVar
 
+import aiofiles
+import aiohttp
 import peony
 
 from . import env, signal, twitter
 from .filters import SIGNAL_FILTERS, TWITTER_FILTERS
-
 
 log = logging.getLogger(__name__)
 

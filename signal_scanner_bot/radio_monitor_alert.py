@@ -7,7 +7,6 @@ import requests
 
 from . import env
 
-
 log = logging.getLogger(__name__)
 
 

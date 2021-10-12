@@ -7,8 +7,7 @@ from datetime import date, datetime, timedelta
 import ujson
 from peony import events
 
-from . import env, messages, signal, radio_monitor_alert
-
+from . import env, messages, radio_monitor_alert, signal
 
 log = logging.getLogger(__name__)
 
