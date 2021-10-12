@@ -5,6 +5,7 @@ from typing import List, Tuple
 
 from signal_scanner_bot import signal
 
+
 # Logging
 log = logging.getLogger("verifier")
 logging.basicConfig(
