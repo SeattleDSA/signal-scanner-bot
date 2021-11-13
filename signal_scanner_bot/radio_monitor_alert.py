@@ -2,8 +2,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
+import aiohttp
+import backoff
 import pytz
-import requests
 
 from . import env
 
@@ -32,24 +33,25 @@ def _calculate_lookback_time() -> str:
     return time_stamp_array[0] + time_stamp_array[1][:3]
 
 
-def get_openmhz_calls() -> Dict:
+async def get_openmhz_calls(session: aiohttp.ClientSession) -> Dict:
     lookback_time = _calculate_lookback_time()
     log.debug(f"Lookback is currently set to: {lookback_time}")
-    response = requests.get(env.OPENMHZ_URL, params={"time": lookback_time})
-    return response.json()["calls"]
+    async with session.get(env.OPENMHZ_URL, params={"time": lookback_time}) as response:
+        return (await response.json())["calls"]
 
 
-def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
+async def get_pigs(
+    session: aiohttp.ClientSession, calls: Dict
+) -> List[Tuple[Dict, str, str]]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
-        radios = radios = {f"7{radio['src']:0>5}" for radio in call["srcList"]}
+        radios = {"radio": list({f"7{radio['src']:0>5}" for radio in call["srcList"]})}
         if not len(radios):
             continue
-        cops = requests.get(env.RADIO_CHASER_URL, params={"radio": radios})
-        log.debug(f"URL requested: {cops.url}")
-        log.debug(f"List of cops returned by radio-chaser:\n{cops.json()}")
-        for cop in cops.json().values():
+        async with session.get(env.RADIO_CHASER_URL, params=radios) as response:
+            cops = await response.json()
+        for cop in cops.values():
             if all(
                 unit.lower() not in cop["unit_description"].lower()
                 for unit in env.RADIO_MONITOR_UNITS
@@ -75,10 +77,17 @@ def format_pigs(pigs: List[Tuple[Dict, str, str]]) -> List[Tuple[str, str]]:
     return formatted_pigs
 
 
-def check_radio_calls() -> Optional[List[Tuple[str, str]]]:
-    calls = get_openmhz_calls()
-    log.debug(f"Calls from OpenMHz:\n{calls}")
-    pigs = get_pigs(calls)
+@backoff.on_exception(
+    backoff.expo,
+    aiohttp.ClientError,
+    logger=log,
+    max_time=env.RADIO_CHASER_BACKOFF,
+)
+async def check_radio_calls() -> Optional[List[Tuple[str, str]]]:
+    session = aiohttp.ClientSession(raise_for_status=True)
+    calls = await get_openmhz_calls(session)
+    pigs = await get_pigs(session, calls)
+    await session.close()
     if not pigs:
         return None
     log.debug(f"Interesting pigs found\n{pigs}")
