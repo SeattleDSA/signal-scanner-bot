@@ -33,24 +33,26 @@ def _calculate_lookback_time() -> str:
     return time_stamp_array[0] + time_stamp_array[1][:3]
 
 
-async def get_openmhz_calls(session: aiohttp.ClientSession) -> Dict:
+async def get_openmhz_calls() -> Dict:
     lookback_time = _calculate_lookback_time()
     log.debug(f"Lookback is currently set to: {lookback_time}")
-    async with session.get(env.OPENMHZ_URL, params={"time": lookback_time}) as response:
-        return (await response.json())["calls"]
+    async with aiohttp.ClientSession(raise_for_status=True) as session:
+        async with session.get(
+            env.OPENMHZ_URL, params={"time": lookback_time}
+        ) as response:
+            return (await response.json())["calls"]
 
 
-async def get_pigs(
-    session: aiohttp.ClientSession, calls: Dict
-) -> List[Tuple[Dict, str, str]]:
+async def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
         radios = {"radio": list({f"7{radio['src']:0>5}" for radio in call["srcList"]})}
         if not len(radios):
             continue
-        async with session.get(env.RADIO_CHASER_URL, params=radios) as response:
-            cops = await response.json()
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            async with session.get(env.RADIO_CHASER_URL, params=radios) as response:
+                cops = await response.json()
         for cop in cops.values():
             if all(
                 unit.lower() not in cop["unit_description"].lower()
@@ -84,10 +86,8 @@ def format_pigs(pigs: List[Tuple[Dict, str, str]]) -> List[Tuple[str, str]]:
     max_time=env.RADIO_CHASER_BACKOFF,
 )
 async def check_radio_calls() -> Optional[List[Tuple[str, str]]]:
-    session = aiohttp.ClientSession(raise_for_status=True)
-    calls = await get_openmhz_calls(session)
-    pigs = await get_pigs(session, calls)
-    await session.close()
+    calls = await get_openmhz_calls()
+    pigs = await get_pigs(calls)
     if not pigs:
         return None
     log.debug(f"Interesting pigs found\n{pigs}")
