@@ -48,7 +48,7 @@ async def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
     for call in calls:
         time = call["time"]
         radios = {"radio": list({f"7{radio['src']:0>5}" for radio in call["srcList"]})}
-        if not len(radios):
+        if not len(radios["radio"]):
             continue
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             async with session.get(env.RADIO_CHASER_URL, params=radios) as response:
