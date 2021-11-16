@@ -203,6 +203,9 @@ RADIO_MONITOR_LOOKBACK = _env(
 RADIO_AUDIO_CHUNK_SIZE = _env(
     "RADIO_AUDIO_CHUNK_SIZE", convert=_cast_to_int, fail=False, default=10
 )
+RADIO_CHASER_BACKOFF = _env(
+    "RRADIO_CHASER_BACKOFF", convert=_cast_to_int, fail=False, default=10800
+)
 
 # Check to make sure the lookback interval is greater than or equal to 45 seconds
 if RADIO_MONITOR_LOOKBACK < 45:

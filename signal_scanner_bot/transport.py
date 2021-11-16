@@ -1,6 +1,5 @@
 """Main module."""
 import asyncio
-import json
 import logging
 import subprocess
 from datetime import date, datetime, timedelta
@@ -146,7 +145,9 @@ async def radio_monitor_alert_transport() -> None:
     while True:
         try:
             log.debug("Checking for monitored units' radio activity.")
-            if radio_monitor_alert_messages := radio_monitor_alert.check_radio_calls():
+            if (
+                radio_monitor_alert_messages := await radio_monitor_alert.check_radio_calls()
+            ):
                 log.info(
                     "Radio activity found for monitored units sending alert to group."
                 )
@@ -159,11 +160,6 @@ async def radio_monitor_alert_transport() -> None:
                 f"Sleeping for {env.RADIO_MONITOR_LOOKBACK}s before checking for monitored unit alerts again."
             )
             await asyncio.sleep(env.RADIO_MONITOR_LOOKBACK)
-        except json.decoder.JSONDecodeError:
-            # Sometimes OpenMHz doesn't return properly and the Python json library throws this error.
-            # It is transient and so doesn't really need to panic or throw an exception, so we will
-            # ignore it.
-            pass
         except Exception as err:
             log.exception(err)
             signal.panic(err)

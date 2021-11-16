@@ -2,8 +2,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
+import aiohttp
+import backoff
 import pytz
-import requests
 
 from . import env
 
@@ -32,24 +33,38 @@ def _calculate_lookback_time() -> str:
     return time_stamp_array[0] + time_stamp_array[1][:3]
 
 
-def get_openmhz_calls() -> Dict:
+async def get_openmhz_calls() -> Dict:
     lookback_time = _calculate_lookback_time()
     log.debug(f"Lookback is currently set to: {lookback_time}")
-    response = requests.get(env.OPENMHZ_URL, params={"time": lookback_time})
-    return response.json()["calls"]
+    async with aiohttp.ClientSession(raise_for_status=True) as session:
+        async with session.get(
+            env.OPENMHZ_URL, params={"time": lookback_time}
+        ) as response:
+            return (await response.json())["calls"]
 
 
-def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
+async def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
-        radios = radios = {f"7{radio['src']:0>5}" for radio in call["srcList"]}
-        if not len(radios):
+        # Due to requirements from aiohttp library it is required that the radios object be
+        # of the forms:
+        #  * {'key1': 'value1', 'key2': 'value2'}
+        #  * {"key": ["value1", "value2"]}
+        #  * [("key", "value1"), ("key", "value2")]
+        #
+        # more pointedly, it can not be
+        #  * {"key": {"value1", "value2"}}
+        #
+        # because aiohttp will choke on it. See the following link for more details
+        # https://docs.aiohttp.org/en/stable/client_quickstart.html#passing-parameters-in-urls
+        radios = {"radio": list({f"7{radio['src']:0>5}" for radio in call["srcList"]})}
+        if not len(radios["radio"]):
             continue
-        cops = requests.get(env.RADIO_CHASER_URL, params={"radio": radios})
-        log.debug(f"URL requested: {cops.url}")
-        log.debug(f"List of cops returned by radio-chaser:\n{cops.json()}")
-        for cop in cops.json().values():
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            async with session.get(env.RADIO_CHASER_URL, params=radios) as response:
+                cops = await response.json()
+        for cop in cops.values():
             if all(
                 unit.lower() not in cop["unit_description"].lower()
                 for unit in env.RADIO_MONITOR_UNITS
@@ -75,10 +90,15 @@ def format_pigs(pigs: List[Tuple[Dict, str, str]]) -> List[Tuple[str, str]]:
     return formatted_pigs
 
 
-def check_radio_calls() -> Optional[List[Tuple[str, str]]]:
-    calls = get_openmhz_calls()
-    log.debug(f"Calls from OpenMHz:\n{calls}")
-    pigs = get_pigs(calls)
+@backoff.on_exception(
+    backoff.expo,
+    aiohttp.ClientError,
+    logger=log,
+    max_time=env.RADIO_CHASER_BACKOFF,
+)
+async def check_radio_calls() -> Optional[List[Tuple[str, str]]]:
+    calls = await get_openmhz_calls()
+    pigs = await get_pigs(calls)
     if not pigs:
         return None
     log.debug(f"Interesting pigs found\n{pigs}")
