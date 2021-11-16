@@ -47,6 +47,17 @@ async def get_pigs(calls: Dict) -> List[Tuple[Dict, str, str]]:
     interesting_pigs = []
     for call in calls:
         time = call["time"]
+        # Due to requirements from aiohttp library it is required that the radios object be
+        # of the forms:
+        #  * {'key1': 'value1', 'key2': 'value2'}
+        #  * {"key": ["value1", "value2"]}
+        #  * [("key", "value1"), ("key", "value2")]
+        #
+        # more pointedly, it can not be
+        #  * {"key": {"value1", "value2"}}
+        #
+        # because aiohttp will choke on it. See the following link for more details
+        # https://docs.aiohttp.org/en/stable/client_quickstart.html#passing-parameters-in-urls
         radios = {"radio": list({f"7{radio['src']:0>5}" for radio in call["srcList"]})}
         if not len(radios["radio"]):
             continue
