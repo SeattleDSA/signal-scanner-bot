@@ -145,4 +145,4 @@ Already I've noticed some issues with this setup that I'm hoping to address in t
 
 For Windows users using VSC, make sure that the **End of Line Sequence** is selected to be `LF` on the script `/scripts/register-number.sh`. If `CRLF` is selected, you will run into an error:
 
-`error: Recipe 'register' failed on line 38 with code 1`
+`standard_init_linux.go:228: exec user process caused: no such file or directory`
