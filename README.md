@@ -111,7 +111,7 @@ If the verification code is accepted, you will receive a return message stating 
 
 Next, run `just up` to run your container. 
 
-To verify that everything is working, you can run `docker ps` to grab the container ID, and then run `docker logs <container-id>` to see the logs.
+To verify that everything is working, you can run `docker logs $(docker ps | grep "sdsa/signal-scanner-bot" | awk -F ' ' '{print $1}')` to see the logs.
 
 ## Technicalities
 
