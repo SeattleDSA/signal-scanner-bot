@@ -94,7 +94,10 @@ Visit the link provided in the response, which will prompt you to open Signal. Y
 
 On the blank webpage, run the inspect tool for your browser. In the Console logs, you should see a message like such:
 
-`>Launched external handler for 'signalcaptcha://<string> generate.html:1<string>'.`
+`>Launched external handler for 'signalcaptcha://<string>'.`
+
+See below screenshot for more details. Note that the entire string is highlighted, and that the generate.html:1 is not part of the string but an artifact of how the logger in the console looks.
+<img width="674" alt="Screen Shot 2021-11-24 at 9 14 05 PM" src="https://user-images.githubusercontent.com/13648427/143383579-b6b9e12a-b8cf-4c28-b509-ea4740cb3ff2.png">
 
 Copy the entire string that comes after `signalcaptcha://`. This will be the code you use to verify the CAPTCHA in your terminal. It should be a 484 character-long string.
 
