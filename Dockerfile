@@ -11,7 +11,8 @@ RUN apt-get update && \
     apt-get install -y \
         default-jre \
         wget \
-        ca-certificates-java && \
+        ca-certificates-java \
+        dos2unix && \
     rm -rf /var/lib/apt/lists/* && \
     update-ca-certificates -f
 
@@ -23,6 +24,7 @@ RUN wget -q https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_
 
 WORKDIR /app
 COPY scripts/register-number.sh .
+RUN dos2unix ./register-number.sh
 COPY . .
 RUN pip install -r requirements.txt && pip install -e .
 
