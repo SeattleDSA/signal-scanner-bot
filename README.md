@@ -109,7 +109,7 @@ If the verification code is accepted, you will receive a return message stating 
 
 `>Verification succeeded, +<BOT_NUMBER> can now be used`
 
-Next, run `just up` to run your container. 
+Next, run `just up` to run your container.
 
 To verify that everything is working, you can run `docker logs $(docker ps | grep "sdsa/signal-scanner-bot" | awk -F ' ' '{print $1}')` to see the logs.
 
