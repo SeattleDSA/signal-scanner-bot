@@ -7,9 +7,15 @@ from typing import Any, Callable, List, Optional, Set
 
 import peony
 import pytz
+from dotenv import load_dotenv
 
 
 log = logging.getLogger(__name__)
+
+
+# Loads .env file if it exists to make development a little easier
+if Path("./.env").is_file():
+    load_dotenv()
 
 
 ################################################################################
