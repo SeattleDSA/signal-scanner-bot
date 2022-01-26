@@ -13,9 +13,14 @@ log = logging.getLogger(__name__)
 ################################################################################
 # Constants
 ################################################################################
-# Leaving these constants for now since they will be removed later
+# TWEET_MAX_SIZE is the current tweet character limit
+# TWEET_THREAD_MAX sets the maximum tweet thrad length
+# TWEET_PADDING calculates the padding necessary based on TWEET_THREAD_MAX. This
+# is done by converting the int to str, getting the number of digits,
+# multiplying the digits by two, and adding
+################################################################################
 TWEET_MAX_SIZE = 280
-TWEET_PADDING = 10
+TWEET_PADDING = 2 * len(str(env.TWEET_THREAD_MAX)) + 2
 
 
 ################################################################################
@@ -46,7 +51,7 @@ def _create_tweet_thread(message: str, hashtags: str) -> List[str]:
         elif index == len(tweet_word_list):
             sub_tweet = " ".join(tweet_word_list[base_index:index])
 
-        # When length of tweet reaches >260 chars save to list and set
+        # When length of tweet reaches >280 chars save to list and set
         # base index for next tweet
         # noinspection PyUnboundLocalVariable
         if len(sub_tweet) > TWEET_MAX_SIZE - TWEET_PADDING:
@@ -136,13 +141,22 @@ async def send_tweet(tweet: str, client: peony.PeonyClient) -> None:
     else:
         tweet_list = [tweet]
 
-    # Tries to send the tweet thread and sends a panic message to the admin
-    # Signal group if there is an error.
-    try:
-        formatted_tweet_list = _format_tweet_message(tweet_list, hashtags)
-        await _send_tweet_thread(formatted_tweet_list, client)
-    except Exception as err:
-        log.warning(
-            f"There was an unexpected error returned from the Twitter API:\n{err}"
+    if len(tweet_list) > env.TWEET_THREAD_MAX:
+        log.error(
+            f"""
+            Attempted to send too long of a tweet thread:
+            thread length = {len(tweet_list)}
+            thread maximum = {env.TWEET_THREAD_MAX}
+            """
         )
-        signal.panic(err)
+    else:
+        # Tries to send the tweet thread and sends a panic message to the admin
+        # Signal group if there is an error.
+        try:
+            formatted_tweet_list = _format_tweet_message(tweet_list, hashtags)
+            await _send_tweet_thread(formatted_tweet_list, client)
+        except Exception as err:
+            log.warning(
+                f"There was an unexpected error returned from the Twitter API:\n{err}"
+            )
+            signal.panic(err)
