@@ -7,9 +7,15 @@ from typing import Any, Callable, List, Optional, Set
 
 import peony
 import pytz
+from dotenv import load_dotenv
 
 
 log = logging.getLogger(__name__)
+
+
+# Loads .env file if it exists to make development a little easier
+if Path("./.env").is_file():
+    load_dotenv()
 
 
 ################################################################################
@@ -164,6 +170,7 @@ TWITTER_API_KEY = _env("TWITTER_API_KEY", convert=_cast_to_string)
 TWITTER_API_SECRET = _env("TWITTER_API_SECRET", convert=_cast_to_string)
 TWITTER_ACCESS_TOKEN = _env("TWITTER_ACCESS_TOKEN", convert=_cast_to_string)
 TWITTER_TOKEN_SECRET = _env("TWITTER_TOKEN_SECRET", convert=_cast_to_string)
+TWEET_THREAD_MAX = _env("TWEET_THREAD_MAX", convert=_cast_to_int, default=9)
 TRUSTED_TWEETERS = _env("TRUSTED_TWEETERS", convert=_cast_to_set, default={})
 SEND_HASHTAGS = _env("SEND_HASHTAGS", convert=_cast_to_list, default=[])
 RECEIVE_HASHTAGS = _env("RECEIVE_HASHTAGS", convert=_format_hashtags, default=[])
