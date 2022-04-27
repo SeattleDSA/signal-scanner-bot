@@ -1,16 +1,18 @@
-FROM python:3.8-slim
+FROM openjdk:17-slim
 
 ENV PIP_NO_CACHE_DIR=1 \
-    JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/ \
     PYTHONPATH=/app \
     SIGNAL_CLI_VERSION=0.10.5
 
 # Install OpenJDK-8
 RUN apt-get update && \
-    mkdir -p /usr/share/man/man1 && \
     apt-get install -y \
-        default-jre \
+        python3.9 \
+        python3.9-dev \
+        python3-pip \
         wget \
+        openjdk-17-jdk-headless \
+        openjdk-17-jre-headless \
         ca-certificates-java \
         dos2unix && \
     rm -rf /var/lib/apt/lists/* && \
