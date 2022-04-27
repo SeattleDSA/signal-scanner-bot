@@ -28,8 +28,8 @@ pull:
     {{ DC }} pull
 
 # Follow docker logs
-logs:
-    {{ DC }} logs -f
+logs args="":
+    {{ DC }} logs -f {{ args }}
 
 # Verify all numbers
 verify:
