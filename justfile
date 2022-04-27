@@ -27,6 +27,10 @@ down:
 pull:
     {{ DC }} pull
 
+# Follow docker logs
+logs:
+    {{ DC }} logs -f
+
 # Verify all numbers
 verify:
 	{{ DC }} {{ RUN }} signal-scanner-bot-verify
