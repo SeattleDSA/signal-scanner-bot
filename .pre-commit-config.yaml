@@ -72,7 +72,7 @@ repos:
         exclude: bin|cli|manage.py|app.py|setup.py|docs
         files: \.py$
 
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: 3.9.2
     hooks:
         - id: flake8
@@ -81,7 +81,7 @@ repos:
             - --select=B,C,E,F,W,T4,B9
 
   - repo: https://github.com/ambv/black
-    rev: 21.6b0
+    rev: 22.10.0
     hooks:
         - id: black
           args:
