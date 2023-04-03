@@ -5,6 +5,9 @@ COMPOSE_FILE := "--file=docker-compose.yml" + (
 )
 DC := "docker-compose " + COMPOSE_FILE
 RUN := "run --rm cli"
+# Force just to hand down positional arguments so quoted arguments with spaces are
+# handled appropriately
+set positional-arguments
 
 
 # Show all available recipes
@@ -27,6 +30,14 @@ down:
 pull:
     {{ DC }} pull
 
+# Attach logs to all (or the specified) services
+logs *args:
+	{{ DC }} logs -f {{ args }}
+
+# Run a command on a provided service
+run *args:
+	{{ DC }} {{ RUN }} "$@"
+
 # Verify all numbers
 verify:
 	{{ DC }} {{ RUN }} signal-scanner-bot-verify
@@ -36,5 +47,5 @@ register:
 	{{ DC }} {{ RUN }} ./register-number.sh
 
 # Static checks
-static:
+lint:
 	pre-commit run --all-files
