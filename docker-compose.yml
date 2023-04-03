@@ -1,7 +1,7 @@
 version: '3'
 services:
   cli:
-    image: sdsa/signal-scanner-bot
+    image: ghcr.io/seattledsa/signal-scanner-bot
     env_file:
       - .env
     environment:
