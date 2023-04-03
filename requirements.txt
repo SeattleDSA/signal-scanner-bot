@@ -8,5 +8,5 @@ python-dotenv==0.19.2
 pytz>=2021.3
 requests==2.26.0
 tweepy==3.9.0
-ujson==3.1.0
+ujson==5.7.0
 urllib3==1.26.5
