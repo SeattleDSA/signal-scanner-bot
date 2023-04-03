@@ -8,7 +8,7 @@ on:
       - ci-*
 
 env:
-  image_name: SeattleDSA/signal-scanner-bot
+  image_name: seattledsa/signal-scanner-bot
 
 jobs:
   push_to_registry:
