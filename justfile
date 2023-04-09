@@ -14,8 +14,12 @@ set positional-arguments
 default:
   @just --list --unsorted
 
+# Create a .env file if it doesn't exist
+env:
+    @([ ! -f .env ] && touch .env) || true
+
 # Build the containers
-build:
+build: env
 	{{ DC }} build
 
 # Spin up all (or one) service
