@@ -31,3 +31,13 @@ jobs:
         run: pip install pytest pytest-cov
       - name: Test with pytest
         run: pytest --cov .
+
+  build:
+    runs-on: ubuntu-latest
+    needs:
+      - static-checks
+    steps:
+      - uses: actions/checkout@v3
+      - uses: extractions/setup-just@v1
+      - name: Build image
+        run: just build
